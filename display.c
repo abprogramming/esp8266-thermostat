@@ -21,8 +21,8 @@ const uint8_t[10] = { 0x01, 0xCF, 0x92, 0x86, 0xCC,
 
 static void shift_out(uint32_t value)
 {
-    gpio_write(SH, 0);
-    gpio_write(ST, 0);
+    gpio_write(PIN_OUT_74HC595_RCLK, 0);
+    gpio_write(PIN_OUT_74HC595_SRCLK, 0);
     
     for (uint8_t i = 0; i < 32; i++)
     {
@@ -59,9 +59,5 @@ void display_control_task(void *pvParameters)
 
     while(1)
     {
-        gpio_write(gpio, 1);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        gpio_write(gpio, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
