@@ -15,7 +15,7 @@
 
 // 7-segment digits byte values
 //                     0     1     2     3     4	    
-const uint8_t[10] = { 0x01, 0xCF, 0x92, 0x86, 0xCC,
+const uint8_t numbers[10] = { 0x01, 0xCF, 0x92, 0x86, 0xCC,
                       0xA4, 0xA0, 0x8F, 0x00, 0x84 };
 //                     5     6     7     8     9
 
@@ -56,8 +56,14 @@ uint32_t temp_values_to_bytes()
 void display_control_task(void *pvParameters)
 {
     gpio_init();
+    uint32_t NotifyValue;
 
     while(1)
     {
+        xTaskNotifyWait((uint32_t)0x00,
+				(uint32_t)0xffffffff,
+				(uint32_t*)&NotifyValue,
+				(TickType_t)portMAX_DELAY);
+        printf("got %u\n", NotifyValue);
     }
 }
