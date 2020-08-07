@@ -1,54 +1,102 @@
+#include "math.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "esp/uart.h"
-
 #include "ds18b20/ds18b20.h"
 
-#define SENSOR_GPIO 13
-#define MAX_SENSORS 8
+#include "common.h"
+#include "temp.h"
+
+
+/**
+ * Detect DS18B20 sensors, get
+ * temperature readings and transmit 
+ * it to main task.
+ *
+ * I've used a TO92 packaged one for
+ * as a room temperature sensor and 
+ * a waterproof version for outside.
+ * Although they could be connected on a 
+ * single GPIO pin, I am using separate ones
+ * to avoid hardcoded serial numbers &c.
+ */
+
+
+#define MAX_SENSORS 2
 #define RESCAN_INTERVAL 8
-#define LOOP_DELAY_MS 250
 
-void read_temp(void *pvParameters) {
+float get_temperature_reading(uint8_t pin)
+{
+    int r = 0;
+    float temp;
+    int sensor_cnt = 0;
     ds18b20_addr_t addrs[MAX_SENSORS];
-    float temps[MAX_SENSORS];
-    int sensor_count;
 
-    while(1) {
-        // Every RESCAN_INTERVAL samples, check to see if the sensors connected
-        // to our bus have changed.
-        sensor_count = ds18b20_scan_devices(SENSOR_GPIO, addrs, MAX_SENSORS);
+    sensor_cnt = ds18b20_scan_devices(pin, addrs, MAX_SENSORS);
+    if (sensor_cnt != 1)
+    {
+	printf("ERROR: temperature sensor detection error on pin %u (found:%d)!\n",
+		pin, sensor_cnt);
+	return (float)TEMP_ERR;
+    }
 
-        if (sensor_count < 1) {
-            printf("\nNo sensors detected!\n");
-        } else {
-            printf("\n%d sensors detected:\n", sensor_count);
-            // If there were more sensors found than we have space to handle,
-            // just report the first MAX_SENSORS..
-            if (sensor_count > MAX_SENSORS) sensor_count = MAX_SENSORS;
+    r = ds18b20_measure(pin, *addrs, 1);
+    DELAY(1000); 
+    if (!r)
+	return (float)TEMP_ERR;
+    temp = ds18b20_read_temperature(pin, *addrs);
+    return temp;
+}
 
-            // Do a number of temperature samples, and print the results.
-            for (int i = 0; i < RESCAN_INTERVAL; i++) {
-                ds18b20_measure_and_read_multi(SENSOR_GPIO, addrs, sensor_count, temps);
-                for (int j = 0; j < sensor_count; j++) {
-                    // The DS18B20 address is a 64-bit integer, but newlib-nano
-                    // printf does not support printing 64-bit values, so we
-                    // split it up into two 32-bit integers and print them
-                    // back-to-back to make it look like one big hex number.
-                    uint32_t addr0 = addrs[j] >> 32;
-                    uint32_t addr1 = addrs[j];
-                    float temp_c = temps[j];
-                    float temp_f = (temp_c * 1.8) + 32;
-                    printf("  Sensor %08x%08x reports %f deg C (%f deg F)\n", addr0, addr1, temp_c, temp_f);
-                }
-                printf("\n");
+// This function scales temperatures to convert
+// then to integers and then packs the two
+// separate readings to a single 32-bit integer
+// to be sent as an RTOS task notification value.
+// The higher 16 bits will hold the inside temp.
+uint32_t pack_floats(float* t)
+{
+    uint32_t neg = 0;
+    uint32_t t0 = FLT2UINT32(t[0]);
+    // Outside temp. can be negative
+    if (t[1] < 0) {
+	t[1] = fabs(t[1]);
+	neg = TEMP_NEG;
+    }
+    uint32_t t1 = FLT2UINT32(t[1]) + neg;
+    t0 <<= 0x10;
+    return (t0 + t1);
+}
 
-                // Wait for a little bit between each sample (note that the
-                // ds18b20_measure_and_read_multi operation already takes at
-                // least 750ms to run, so this is on top of that delay).
-                vTaskDelay(LOOP_DELAY_MS / portTICK_PERIOD_MS);
-            }
-        }
+void read_temp_task(void *pvParameters)
+{
+    TaskHandle_t main_task_h = (TaskHandle_t)pvParameters;
+ 
+    float temps[2];
+    uint32_t notify_val;
+
+    for (;;)
+    {
+	temps[0] = 23.5865; //get_temperature_reading(PIN_DS18B20_ROOM);
+	temps[1] = -34.1223; //get_temperature_reading(PIN_DS18B20_OUTS);
+	DELAY(2000);
+	notify_val = pack_floats(&temps);
+	xTaskNotify(main_task_h, notify_val,
+		(eNotifyAction)eSetValueWithOverwrite);
+/*	
+	temps[0] = 12.9865; //get_temperature_reading(PIN_DS18B20_ROOM);
+	temps[1] = TEMP_ERR; //get_temperature_reading(PIN_DS18B20_OUTS);
+	DELAY(2000);
+	notify_val = pack_floats(&temps);
+	xTaskNotify(main_task_h, notify_val,
+		(eNotifyAction)eSetValueWithOverwrite);
+	
+	temps[0] = 25.0; //get_temperature_reading(PIN_DS18B20_ROOM);
+	temps[1] = -12.45; //get_temperature_reading(PIN_DS18B20_OUTS);
+	DELAY(2000);
+	notify_val = pack_floats(&temps);
+	xTaskNotify(main_task_h, notify_val,
+		(eNotifyAction)eSetValueWithOverwrite);
+		*/
     }
 }
   
