@@ -1,0 +1,3 @@
+#exclude folders, which is created during make
+build
+firmware
