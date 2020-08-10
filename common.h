@@ -6,21 +6,22 @@
 
 // DS18B20 temperature sensors
 // (1-wire protocol)
-#define PIN_DS18B20_ROOM   0
-#define PIN_DS18B20_OUTS   0
+#define PIN_DS18B20_ROOM    0 
+#define PIN_DS18B20_OUTS    0
 
 // 75HC595 Shift register for 
 // seven-segment display control
-#define PIN_74HC595_DS    13
-#define PIN_74HC595_RCLK  15
-#define PIN_74HC595_SRCLK 14
-#define PIN_74HC595_OE     0
+#define PIN_74HC595_SER    12
+#define PIN_74HC595_OE     14
+#define PIN_74HC595_RCLK    4
+#define PIN_74HC595_SRCLK   5
+
 
 // GPIO pins for buttons and
 // the on-off switch
-#define PIN_SWITCH_ON      0
-#define PIN_SWITCH_OFF     0 
-#define PIN_TACTILEBUTTON  0
+#define PIN_SWITCH_ON       0
+#define PIN_SWITCH_OFF      0 
+#define PIN_TACTILEBUTTON  16
 
 
 /////////////////////////////////////////////////////
@@ -29,6 +30,9 @@
 
 // UART baud rate for debugging
 #define BAUDRATE 9600
+
+//Define time to automatically switch off display
+#define DISPLAY_DELAY 5 /* sec */ *  1000
 
 // Constant to indicate
 // failed readings
