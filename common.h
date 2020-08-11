@@ -43,6 +43,14 @@
 // indicate if it's negative
 #define TEMP_NEG 0x8000
 
+// Magic number for the lower 16 bit
+// of the task notification value
+// to indicate that the value is
+// from the temperature knob
+// (in this mode, no outside
+// temperature is displayed)
+#define SET_TEMP_MAGIC 0x5E77
+
 // Define a convient macro for delays,
 // looks better when used frequently in the code
 #define DELAY(x) vTaskDelay(x/portTICK_PERIOD_MS)
@@ -51,11 +59,11 @@
 // to 32-bit unsigned integers to send as RTOS
 // task notification values. Hundredths precision
 // is more than enough for household usage.
-#define FLT2UINT32(x) (uint32_t)(x * 100)
+#define FLT2UINT32(x) (uint32_t) (x * 100)
 
 // Macros for unpacking 16-bit unsigned ints
 // from the packed 32-bit notification values
-#define GETUPPER16(x) (uint16_t)(x >> 0x10)
-#define GETLOWER16(x) (uint16_t)(x  & 0x0000ffff)
+#define GETUPPER16(x) (uint16_t) (x >> 0x10)
+#define GETLOWER16(x) (uint16_t) (x  & 0x0000ffff)
 
 #endif

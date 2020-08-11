@@ -1,9 +1,18 @@
 #ifndef __DISPLAY_H__
 #define __DISPLAY_H__
 
-void display_control_task(void *pvParameters);
+// API for controlling the display state (on/off)
+// (which basically boils down to pulling the
+// OE pin of 75HC595 to high/low level)
 
-void display_on(void);
-void display_off(void);
+typedef enum
+{
+    DISPLAY_OFF,
+    DISPLAY_ON
+} display_state_t;
+
+void set_display_state(display_state_t state);
+
+void display_control_task(void *pvParameters);
 
 #endif
