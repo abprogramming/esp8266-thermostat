@@ -1,14 +1,7 @@
-#include <stdlib.h>
-#include "espressif/esp_common.h"
-#include "esp/uart.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "esp8266.h"
-
 #include "common.h"
 #include "main.h"
 #include "temp.h"
-//#include "relay.h"
+#include "relay.h"
 #include "display.h"
 #include "buttons.h"
 
@@ -31,49 +24,55 @@ void user_init(void)
 {
     uart_set_baud(0, BAUDRATE);
 
-   	// Main flow control
+    // Main flow control
     xTaskCreate(&main_task, "main_task",
-        256, NULL, 2, &main_task_h);
+        256, NULL, PRIO_DEFAULT, &main_task_h);
 
-   	// Each task receives the handle for the main task
 
-   	// Read temperature data from sensors
-    //xTaskCreate(&read_temp_task, "read_temp",
-    //    256, (void*) main_task_h, 2, &temp_task_h);
+    // Each task receives the handle for the main task
 
-   	// Control the relay 
-   	//xTaskCreate(&relay_control_task,  "relay_control",    256, NULL, 2, &relay_task_h);
+    // Read temperature data from sensors
+    xTaskCreate(&read_temp_task, "read_temp",
+        256, (void*) main_task_h, PRIO_DEFAULT, &temp_task_h);
 
-   	// Handle the 7-segment displays
-    //xTaskCreate(&display_control_task, "display_control",
-    //    256, (void*) main_task_h, 2, &display_task_h);
+    // Handle the 7-segment displays
+    xTaskCreate(&display_control_task, "display_control",
+        256, (void*) main_task_h, PRIO_DEFAULT, &display_task_h);
 
-   	// Handle user input, button, switch and potentiometer
-   	input_control_init((void*) main_task_h);
+    // Handle user input, button, switch and potentiometer
+    input_control_init((void*) main_task_h);
+    
+    // Init relay module
+    relay_init();
 }
 
 void main_task(void *pvParameters)
 {
     uint32_t recv_temp;
-    uint32_t set_temp;
-    uint8_t set_mode = 0;
+    uint32_t set_temp = FLT2UINT32(TEMP_INITIAL);
 
-   	// Wait some time to be
-   	// sure everything is ready
+    // Wait some time to be sure everything is ready
     DELAY(3000);
-
-	
+    
     for (;;)
     {
-		/*
-       	// Get temperature readings
+        // Get temperature readings
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
         printf("recv val=%u room=%u outside=%u\n", recv_temp, GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        
+        // Set new temperature
+        if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
+        {
+            set_temp = GETUPPER16(recv_temp);
+        }
+        
+        // Decide if heater switch on/off is needed
+        
+        
 
-       	// Refresh display
+        // Refresh display
         xTaskNotify(display_task_h, recv_temp,
             (eNotifyAction) eSetValueWithOverwrite);
-        */
     }
 }

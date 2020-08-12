@@ -1,12 +1,6 @@
-#include <stdlib.h>
-#include "espressif/esp_common.h"
-#include "esp/uart.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "esp8266.h"
-#include "ds18b20/ds18b20.h"
-
 #include "common.h"
+#include "math.h"
+#include "ds18b20/ds18b20.h"
 #include "temp.h"
 
 
@@ -59,14 +53,14 @@ uint32_t pack_floats(float *t)
 {
     uint32_t neg = 0;
     uint32_t t0 = FLT2UINT32(t[0]);
-   	// Outside temp. can be negative
+       // Outside temp. can be negative
     if (t[1] < 0)
     {
         t[1] = fabs(t[1]);
         neg = TEMP_NEG;
     }
     uint32_t t1 = FLT2UINT32(t[1]) + neg;
-    t0 <<= 0x10;
+    t0 <<= 16;
     return (t0 + t1);
 }
 
@@ -79,18 +73,18 @@ void read_temp_task(void *pvParameters)
 
     for (;;)
     {
-		DELAY(2000);
-		
+        DELAY(2000);
+        
         temps[0] = get_temperature_reading(PIN_DS18B20_ROOM);
         temps[1] = get_temperature_reading(PIN_DS18B20_OUTS);
         notify_val = pack_floats(&temps);
         
-        // This should NEVER happen, but better check...
-        if (GETLOWER16(notify_val) != 0x5E77 &&
-		    GETLOWER16(notify_val) != 0xACCE)
-		{
-		    xTaskNotify(main_task_h, notify_val,
-			(eNotifyAction) eSetValueWithOverwrite);
-		}
+        // This should NEVER happen, but we better check...
+        if (GETLOWER16(notify_val) != MAGIC_SET_TEMP &&
+            GETLOWER16(notify_val) != MAGIC_ACC_TEMP)
+        {
+            xTaskNotify(main_task_h, notify_val,
+            (eNotifyAction) eSetValueWithOverwrite);
+        }
     }
 }

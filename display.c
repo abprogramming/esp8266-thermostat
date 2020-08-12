@@ -1,13 +1,7 @@
-#include <stdlib.h>
-#include "espressif/esp_common.h"
-#include "esp/uart.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "esp8266.h"
-
 #include "common.h"
 #include "display.h"
 #include "74hc595.h"
+
 
 /**
  * The display consists of four seven-segments
@@ -25,15 +19,24 @@
  */
 
 // 7-segment digits byte values
-//                            0     1     2     3     4	    
+//                            0     1     2     3     4        
 const uint8_t digits[10] = { 0x81, 0xCF, 0x92, 0x86, 0xCC,
                              0xA4, 0xA0, 0x8F, 0x80, 0x84 };
 //                            5     6     7     8     9
 // Mask to use if we want to drive Q(A) pin high
 const uint8_t QA = 0x80;
 
-// Digit to display in case of sensor failure
+// Digit to display in case of sensor failure (two dashes)
 const uint8_t ERR_DISPLAY = 0xFE;
+
+// Value for displaying 'LoAd' at startup
+const uint32_t DISPLAY_TEST = 0x0;
+
+// Value to display 'SE' while setting temperature
+const uint16_t DISPLAY_SE = 0x0;
+
+// Value to display 'AC' after accepting temperature
+const uint16_t DISPLAY_AC = 0x0;
 
 
 /**
@@ -59,7 +62,7 @@ static uint32_t value_to_byte(uint32_t n)
     uint8_t neg = 0x0;
     uint8_t dot = 0x0;
 
-   	// Handle error value
+       // Handle error value
     if (n == TEMP_ERR)
     {
         out = (ERR_DISPLAY << 8) + ERR_DISPLAY;
@@ -67,7 +70,7 @@ static uint32_t value_to_byte(uint32_t n)
     }
     
 
-   	// Handle if number is negative
+       // Handle if number is negative
     if (n & TEMP_NEG)
     {
         n -= TEMP_NEG;
@@ -76,13 +79,13 @@ static uint32_t value_to_byte(uint32_t n)
     }
     
 
-   	// The last digit is truncated
-   	// by rounding so omit it
+       // The last digit is truncated
+       // by rounding so omit it
     n /= 10;
 
 
-   	// The next digit determines if
-   	// the decimal point should be turned on
+       // The next digit determines if
+       // the decimal point should be turned on
     v = n % 10;
     if (v)
         dot = QA;
@@ -90,9 +93,9 @@ static uint32_t value_to_byte(uint32_t n)
     printf("d1: %d\n", v);
 
 
-   	// The next two digits are the original
-   	// integer part, which is displayed as
-   	// numbers on seven-segments
+       // The next two digits are the original
+       // integer part, which is displayed as
+       // numbers on seven-segments
 
     n /= 10;
     v = n % 10;
@@ -110,6 +113,9 @@ static uint32_t value_to_byte(uint32_t n)
     return (uint32_t) out;
 }
 
+// Contruct a 4-byte sequence to display 
+// two temperature values in normal mode
+
 static uint32_t temp_values_to_bytes(uint32_t u)
 {
     uint32_t out;
@@ -118,6 +124,16 @@ static uint32_t temp_values_to_bytes(uint32_t u)
     printf("rounded: %u %u\n", room, outs);
     out = (value_to_byte(room) << 16) + value_to_byte(outs);
     printf("out2: %u\n", out);
+    return out;
+}
+
+// Construct a 4-byte sequence to display two chars (SE or AC)
+// and a temperature in set mode
+static uint32_t get_set_mode_display_bytes(uint32_t u, uint16_t text)
+{
+    uint32_t out;
+    uint32_t room = round_to_multiple(GETUPPER16(u), 50);
+    out = (text << 16) + value_to_byte(room);
     return out;
 }
 
@@ -132,27 +148,20 @@ static uint32_t temp_values_to_bytes(uint32_t u)
 
 void set_display_state(display_state_t state)
 {
-	switch (state)
-	{
-		case DISPLAY_OFF:
-			gpio_write(PIN_74HC595_OE, 0);
-			break;
-		case DISPLAY_ON:
-			gpio_write(PIN_74HC595_OE, 1);
-			break;
-	}
+    switch (state)
+    {
+        case DISPLAY_OFF:
+            gpio_write(PIN_74HC595_OE, 0);
+            break;
+        case DISPLAY_ON:
+            gpio_write(PIN_74HC595_OE, 1);
+            break;
+    }
 }
 
 static void test_display(void)
 {
-    uint32_t out = digits[8];
-    out << 8;
-    out += digits[0];
-    out << 8;
-    out += digits[0];
-    out << 8;
-    out += digits[7];
-    shift_out(out, sizeof(out));
+    shift_out(DISPLAY_TEST, sizeof(DISPLAY_TEST));
     set_display_state(DISPLAY_ON);
     DELAY(3000);
     set_display_state(DISPLAY_OFF);
@@ -165,12 +174,25 @@ void display_control_task(void *pvParameters)
 
     shift_init();
     test_display();
-	
+    
     for (;;)
     {
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
-        out = temp_values_to_bytes(recv_temp);
+            
+        if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
+        {
+            out = get_set_mode_display_bytes(recv_temp, DISPLAY_SE);
+        }
+        else if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
+        {
+            out = get_set_mode_display_bytes(recv_temp, DISPLAY_AC);
+        }
+        else
+        {
+            out = temp_values_to_bytes(recv_temp);
+        }
+        
         shift_out(out, sizeof(out));
     }
 }
