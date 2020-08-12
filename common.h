@@ -7,7 +7,7 @@
 // DS18B20 temperature sensors
 // (1-wire protocol)
 #define PIN_DS18B20_ROOM    0 
-#define PIN_DS18B20_OUTS    0
+#define PIN_DS18B20_OUTS    2
 
 // 75HC595 Shift register for 
 // seven-segment display control
@@ -16,13 +16,11 @@
 #define PIN_74HC595_RCLK    4
 #define PIN_74HC595_SRCLK   5
 
+// GPIO pins for buttons
+#define PIN_TACTILEBUTTON  13
 
-// GPIO pins for buttons and
-// the on-off switch
-#define PIN_SWITCH_ON       0
-#define PIN_SWITCH_OFF      0 
-#define PIN_TACTILEBUTTON  16
-
+// GPIO pin for relay control
+#define PIN_RELAY          16
 
 /////////////////////////////////////////////////////
 // Miscellaneous settings and
@@ -50,6 +48,13 @@
 // (in this mode, no outside
 // temperature is displayed)
 #define SET_TEMP_MAGIC 0x5E77
+
+// Magic number for the lower 16 bit
+// of the task notification value
+// to notify the main task about the
+// user's acceptance of the new
+// temperature setting in set mode
+#define ACC_TEMP_MAGIC 0xACCE
 
 // Define a convient macro for delays,
 // looks better when used frequently in the code

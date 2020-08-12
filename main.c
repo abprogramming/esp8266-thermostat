@@ -38,32 +38,34 @@ void user_init(void)
    	// Each task receives the handle for the main task
 
    	// Read temperature data from sensors
-    xTaskCreate(&read_temp_task, "read_temp",
-        256, (void*) main_task_h, 2, &temp_task_h);
+    //xTaskCreate(&read_temp_task, "read_temp",
+    //    256, (void*) main_task_h, 2, &temp_task_h);
 
    	// Control the relay 
    	//xTaskCreate(&relay_control_task,  "relay_control",    256, NULL, 2, &relay_task_h);
 
    	// Handle the 7-segment displays
-    xTaskCreate(&display_control_task, "display_control",
-        256, (void*) main_task_h, 2, &display_task_h);
+    //xTaskCreate(&display_control_task, "display_control",
+    //    256, (void*) main_task_h, 2, &display_task_h);
 
    	// Handle user input, button, switch and potentiometer
-   	xTaskCreate(&input_control_task, "input_control",
-   	    256, (void*) main_task_h, 2, &input_task_h);
+   	input_control_init((void*) main_task_h);
 }
 
 void main_task(void *pvParameters)
 {
     uint32_t recv_temp;
     uint32_t set_temp;
+    uint8_t set_mode = 0;
 
    	// Wait some time to be
    	// sure everything is ready
     DELAY(3000);
 
+	
     for (;;)
     {
+		/*
        	// Get temperature readings
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
@@ -72,5 +74,6 @@ void main_task(void *pvParameters)
        	// Refresh display
         xTaskNotify(display_task_h, recv_temp,
             (eNotifyAction) eSetValueWithOverwrite);
+        */
     }
 }

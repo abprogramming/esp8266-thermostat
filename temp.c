@@ -45,6 +45,7 @@ float get_temperature_reading(uint8_t pin)
     if (!r)
         return (float) TEMP_ERR;
     temp = ds18b20_read_temperature(pin, *addrs);
+    printf("%f from %d\n", temp, pin);
     return temp;
 }
 
@@ -78,26 +79,18 @@ void read_temp_task(void *pvParameters)
 
     for (;;)
     {
-        temps[0] = 23.5865;	//get_temperature_reading(PIN_DS18B20_ROOM);
-        temps[1] = -34.1223;	//get_temperature_reading(PIN_DS18B20_OUTS);
-        DELAY(2000);
+		DELAY(2000);
+		
+        temps[0] = get_temperature_reading(PIN_DS18B20_ROOM);
+        temps[1] = get_temperature_reading(PIN_DS18B20_OUTS);
         notify_val = pack_floats(&temps);
-        xTaskNotify(main_task_h, notify_val,
-            (eNotifyAction) eSetValueWithOverwrite);
-        /*	
-        	temps[0] = 12.9865;	//get_temperature_reading(PIN_DS18B20_ROOM);
-        	temps[1] = TEMP_ERR;	//get_temperature_reading(PIN_DS18B20_OUTS);
-        	DELAY(2000);
-        	notify_val = pack_floats(&temps);
-        	xTaskNotify(main_task_h, notify_val,
-        		(eNotifyAction)eSetValueWithOverwrite);
-
-        	temps[0] = 25.0;	//get_temperature_reading(PIN_DS18B20_ROOM);
-        	temps[1] = -12.45;	//get_temperature_reading(PIN_DS18B20_OUTS);
-        	DELAY(2000);
-        	notify_val = pack_floats(&temps);
-        	xTaskNotify(main_task_h, notify_val,
-        		(eNotifyAction)eSetValueWithOverwrite);
-        		*/
+        
+        // This should NEVER happen, but better check...
+        if (GETLOWER16(notify_val) != 0x5E77 &&
+		    GETLOWER16(notify_val) != 0xACCE)
+		{
+		    xTaskNotify(main_task_h, notify_val,
+			(eNotifyAction) eSetValueWithOverwrite);
+		}
     }
 }

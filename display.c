@@ -132,15 +132,15 @@ static uint32_t temp_values_to_bytes(uint32_t u)
 
 void set_display_state(display_state_t state)
 {
-        switch (state)
-        {
-            case DISPLAY_OFF:
-                gpio_write(PIN_74HC595_OE, 0);
-                break;
-            case DISPLAY_ON:
-                gpio_write(PIN_74HC595_OE, 1);
-                break;
-        }
+	switch (state)
+	{
+		case DISPLAY_OFF:
+			gpio_write(PIN_74HC595_OE, 0);
+			break;
+		case DISPLAY_ON:
+			gpio_write(PIN_74HC595_OE, 1);
+			break;
+	}
 }
 
 static void test_display(void)
@@ -165,13 +165,12 @@ void display_control_task(void *pvParameters)
 
     shift_init();
     test_display();
-
+	
     for (;;)
     {
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
         out = temp_values_to_bytes(recv_temp);
         shift_out(out, sizeof(out));
-        DELAY(1000);
     }
 }
