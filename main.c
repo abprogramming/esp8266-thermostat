@@ -59,7 +59,7 @@ void main_task(void *pvParameters)
         // Get temperature readings
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
-        printf("recv val=%u room=%u outside=%u\n", recv_temp, GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        dprintf("recv val=%u room=%u outside=%u\n", recv_temp, GETUPPER16(recv_temp), GETLOWER16(recv_temp));
         
         // Set new temperature
         if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)

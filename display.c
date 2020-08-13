@@ -121,9 +121,9 @@ static uint32_t temp_values_to_bytes(uint32_t u)
     uint32_t out;
     uint32_t room = round_to_multiple(GETUPPER16(u), 50);
     uint32_t outs = round_to_multiple(GETLOWER16(u), 50);
-    printf("rounded: %u %u\n", room, outs);
+    dprintf("rounded: room %u outside %u\n", room, outs);
     out = (value_to_byte(room) << 16) + value_to_byte(outs);
-    printf("out2: %u\n", out);
+    dprintf("out2: %u\n", out);
     return out;
 }
 

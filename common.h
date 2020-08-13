@@ -10,19 +10,6 @@
 #include "task.h"
 #include "esp8266.h"
 
-
-/////////////////////////////////////////////////////
-// Temperature limits, which can be set
-#define TEMP_MIN (float) 18.0
-#define TEMP_MAX (float) 26.0
-
-// Set temperature after boot
-#define TEMP_INITIAL (float) 21.5
-
-// Hysteresis value after boot
-#define HYST_INITIAL (float) 0.5
-
-
 /////////////////////////////////////////////////////
 // GPIO pin numbers
 
@@ -43,6 +30,39 @@
 
 // GPIO pin for relay control
 #define PIN_RELAY          16
+
+
+
+/////////////////////////////////////////////////////
+// Temperature limits
+#define TEMP_MIN (float) 18.0
+#define TEMP_MAX (float) 26.0
+
+// Set temperature after boot
+#define TEMP_INITIAL (float) 21.5
+
+// Hysteresis value after boot
+#define HYST_INITIAL (float) 0.5
+
+// The value adc_read returns, when the
+// temperature knob set to max resistance
+#define ADC_MIN (uint16_t) 811
+
+
+
+/////////////////////////////////////////////////////
+// Miscellaneous
+
+// Priorities for RTOS tasks
+#define PRIO_DEFAULT 2
+
+// Define a convient macro for delays,
+// looks better when used frequently in the code
+#define DELAY(x) vTaskDelay(x/portTICK_PERIOD_MS)
+
+//Define time to automatically switch off display
+#define DISPLAY_DELAY 5 /* sec */ *  1000
+
 
 
 /////////////////////////////////////////////////////
@@ -85,21 +105,18 @@
 #define GETLOWER16(x) (uint16_t) (x  & 0x0000ffff)
 
 
+
 /////////////////////////////////////////////////////
-// Miscellaneous settings and
-// definitions for common use
+// Debugging
 
-// Priorities for RTOS taska
-#define PRIO_DEFAULT 2
+#define DEBUG true
 
-// UART baud rate for debugging
+// UART baud rate
 #define BAUDRATE 9600
 
-// Define a convient macro for delays,
-// looks better when used frequently in the code
-#define DELAY(x) vTaskDelay(x/portTICK_PERIOD_MS)
-
-//Define time to automatically switch off display
-#define DISPLAY_DELAY 5 /* sec */ *  1000
+#define dprintf(fmt, ...) \
+    if (DEBUG) { printf ("%s | " fmt, \
+    pcTaskGetName(NULL), ##__VA_ARGS__); }
+    
 
 #endif

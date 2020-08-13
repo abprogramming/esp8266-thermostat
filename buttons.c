@@ -88,7 +88,7 @@ void set_temperature_task(void *pvParameters)
 void display_timer_cb(TimerHandle_t pxTimer)
 {
     taskENTER_CRITICAL();
-    printf("timer end\n");
+    dprintf("timer end\n");
     fflush(stdout);
     // Suspend temperature knob control
     vTaskSuspend(set_temp_task_h);
@@ -100,7 +100,7 @@ void button_interrupt(uint8_t gpio_num)
 {
     (void)gpio_num;
     
-    printf("GPIO ir\n");
+    dprintf("GPIO ir\n");
     fflush(stdout);
     
     taskENTER_CRITICAL();

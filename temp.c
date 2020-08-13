@@ -29,7 +29,7 @@ float get_temperature_reading(uint8_t pin)
     sensor_cnt = ds18b20_scan_devices(pin, addrs, MAX_SENSORS);
     if (sensor_cnt != 1)
     {
-        printf("ERROR: temperature sensor detection error on pin %u (found:%d)!\n",
+        dprintf("ERROR: temperature sensor detection error on pin %u (found:%d)!\n",
             pin, sensor_cnt);
         return (float) TEMP_ERR;
     }
@@ -39,7 +39,7 @@ float get_temperature_reading(uint8_t pin)
     if (!r)
         return (float) TEMP_ERR;
     temp = ds18b20_read_temperature(pin, *addrs);
-    printf("%f from %d\n", temp, pin);
+    dprintf("%f C from GPIO %d\n", temp, pin);
     return temp;
 }
 
