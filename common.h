@@ -115,8 +115,10 @@
 #define BAUDRATE 9600
 
 #define dprintf(fmt, ...) \
-    if (DEBUG) { printf ("%s | " fmt, \
-    pcTaskGetName(NULL), ##__VA_ARGS__); }
+    if (DEBUG) { printf ("%10u %s | " fmt, \
+    (uint32_t) xTaskGetTickCount, \
+    pcTaskGetName(NULL), \
+    ##__VA_ARGS__); }
     
-
+    
 #endif

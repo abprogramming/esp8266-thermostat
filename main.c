@@ -40,16 +40,26 @@ void user_init(void)
         256, (void*) main_task_h, PRIO_DEFAULT, &display_task_h);
 
     // Handle user input, button, switch and potentiometer
-    input_control_init((void*) main_task_h);
+    xTaskCreate(&input_control_task, "display_control",
+        256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     
     // Init relay module
     relay_init();
+    
+    vTaskStartScheduler();
+}
+
+void update_relay_state(relay_state_t *st,
+     uint16_t target, uint16_t actual)
+{
+    if (*st == RELAY_OFF && 
 }
 
 void main_task(void *pvParameters)
 {
     uint32_t recv_temp;
-    uint32_t set_temp = FLT2UINT32(TEMP_INITIAL);
+    uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
+    relay_state_t relay_state = RELAY_OFF;
 
     // Wait some time to be sure everything is ready
     DELAY(3000);
@@ -60,19 +70,14 @@ void main_task(void *pvParameters)
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
         dprintf("recv val=%u room=%u outside=%u\n", recv_temp, GETUPPER16(recv_temp), GETLOWER16(recv_temp));
-        
-        // Set new temperature
-        if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
-        {
-            set_temp = GETUPPER16(recv_temp);
-        }
-        
-        // Decide if heater switch on/off is needed
-        
-        
 
         // Refresh display
         xTaskNotify(display_task_h, recv_temp,
             (eNotifyAction) eSetValueWithOverwrite);
+            
+        // Decide if we need to turn on or off the relay
+        update_relay_state(&relay_state,
+            set_temp, GETUPPER16(recv_temp));
+        set_relay_state(relay_state);
     }
 }

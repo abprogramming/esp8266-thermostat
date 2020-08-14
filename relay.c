@@ -10,7 +10,6 @@ void relay_init(void)
 void set_relay_state(relay_state_t state)
 {
     //Negative logic!
-    
     switch (state)
     {
         case RELAY_OFF:

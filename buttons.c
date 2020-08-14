@@ -43,6 +43,7 @@ uint32_t adc_temp_to_uint32(uint16_t adc)
 
 uint32_t get_notification_from_adc(uint16_t adc, uint16_t magic)
 {
+
 }
 
 void set_temperature_task(void *pvParameters)
@@ -101,7 +102,6 @@ void button_interrupt(uint8_t gpio_num)
     (void)gpio_num;
     
     dprintf("GPIO ir\n");
-    fflush(stdout);
     
     taskENTER_CRITICAL();
     if (set_mode == 0)
@@ -123,8 +123,10 @@ void button_interrupt(uint8_t gpio_num)
     xTimerStart(display_timer, 10);
 }
 
-void input_control_init(void *main_task_h)
+void input_control_task(void *pvParameters)
 {
+    TaskHandle_t main_task_h = (TaskHandle_t) pvParameters;
+    
     gpio_enable(PIN_TACTILEBUTTON, GPIO_INPUT);
     
     // Attach an interrupt handler the GPIO pin of the tactile button
@@ -140,5 +142,9 @@ void input_control_init(void *main_task_h)
     // Task for handling the temperature knob
     xTaskCreate(&set_temperature_task, "set_temperature_task",
         256, main_task_h, PRIO_DEFAULT, &set_temp_task_h);
+        
+    for (;;)
+    {
+    }
 }
   
