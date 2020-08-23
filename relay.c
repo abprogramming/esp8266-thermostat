@@ -9,7 +9,7 @@ void relay_init(void)
 
 void set_relay_state(relay_state_t state)
 {
-    //Negative logic!
+    // Negative logic!
     switch (state)
     {
         case RELAY_OFF:
@@ -21,3 +21,18 @@ void set_relay_state(relay_state_t state)
     }
 }
 
+void test_relay(void)
+{
+    set_relay_state(RELAY_ON);
+    DELAY(500);
+    set_relay_state(RELAY_OFF);
+    DELAY(500);
+    set_relay_state(RELAY_ON);
+    DELAY(500);
+    set_relay_state(RELAY_OFF);
+    DELAY(500);
+    set_relay_state(RELAY_ON);
+    DELAY(500);
+    set_relay_state(RELAY_OFF);
+    DELAY(500);
+}
