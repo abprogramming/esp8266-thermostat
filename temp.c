@@ -73,8 +73,6 @@ void read_temp_task(void *pvParameters)
 
     for (;;)
     {
-        DELAY(2000);
-        
         float temps[2];
         temps[0] = get_temperature_reading(PIN_DS18B20_ROOM);
         temps[1] = get_temperature_reading(PIN_DS18B20_OUTS);
