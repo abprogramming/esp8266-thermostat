@@ -20,23 +20,23 @@
 
 // 75HC595 Shift register for 
 // seven-segment display control
-#define PIN_74HC595_SER    12
-#define PIN_74HC595_OE     14
-#define PIN_74HC595_RCLK    4
-#define PIN_74HC595_SRCLK   5
+#define PIN_74HC595_SER    15
+#define PIN_74HC595_OE     13
+#define PIN_74HC595_RCLK   14
+#define PIN_74HC595_SRCLK  12
 
 // GPIO pins for buttons
-#define PIN_TACTILEBUTTON  13
+#define PIN_TACTILEBUTTON   5
 
 // GPIO pin for relay control
-#define PIN_RELAY          16
+#define PIN_RELAY           4
 
 
 
 /////////////////////////////////////////////////////
 // Temperature limits
 #define TEMP_MIN (float) 18.0
-#define TEMP_MAX (float) 26.0
+#define TEMP_MAX (float) 28.0
 
 // Set temperature after boot
 #define TEMP_INITIAL (float) 21.5
@@ -46,7 +46,12 @@
 
 // The value adc_read returns, when the
 // temperature knob set to max resistance
-#define ADC_MIN (uint16_t) 811
+#define ADC_MIN (uint16_t) 813
+
+// It's always 1024 (see SDK docs) but it
+// looks prettier this way
+#define ADC_MAX (uint16_t) 1024
+
 
 
 
@@ -109,16 +114,13 @@
 /////////////////////////////////////////////////////
 // Debugging
 
-#define DEBUG true
-
 // UART baud rate
 #define BAUDRATE 9600
 
 #define dprintf(fmt, ...) \
-    if (DEBUG) { printf ("%10u %s | " fmt, \
-    (uint32_t) xTaskGetTickCount, \
-    pcTaskGetName(NULL), \
-    ##__VA_ARGS__); }
+    printf ("%10u %s | " fmt, \
+    (uint32_t) xTaskGetTickCount * portTICK_PERIOD_MS, \
+    pcTaskGetName(NULL), ##__VA_ARGS__);
     
     
 #endif
