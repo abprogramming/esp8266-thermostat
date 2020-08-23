@@ -38,46 +38,86 @@ void user_init(void)
     // Handle the 7-segment displays
     xTaskCreate(&display_control_task, "display_control",
         256, (void*) main_task_h, PRIO_DEFAULT, &display_task_h);
-
     // Handle user input, button, switch and potentiometer
     xTaskCreate(&input_control_task, "display_control",
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     
     // Init relay module
     relay_init();
-    
-    vTaskStartScheduler();
+    set_relay_state(RELAY_OFF);
 }
 
-void update_relay_state(relay_state_t *st,
-     uint16_t target, uint16_t actual)
+/////////////////////////////////////////////////////
+
+void update_relay_state
+(
+    relay_state_t *st,
+    uint16_t actual,
+    uint16_t target,
+    uint16_t hyst
+)
 {
+    dprintf("rs act %u tgt %u h %u\n", actual, target, hyst);
     if (*st == RELAY_OFF && 
+        actual <= target - hyst)
+    {
+        *st = RELAY_ON;
+    }
+    
+    if (*st == RELAY_ON && 
+        actual >= target + hyst)
+    {
+        *st = RELAY_OFF;
+    }
 }
+
+/////////////////////////////////////////////////////
 
 void main_task(void *pvParameters)
 {
     uint32_t recv_temp;
     uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
+    uint16_t hyst = (uint16_t) FLT2UINT32(HYST_INITIAL);
     relay_state_t relay_state = RELAY_OFF;
 
+    test_relay();
+    
     // Wait some time to be sure everything is ready
     DELAY(3000);
     
     for (;;)
     {
-        // Get temperature readings
+        // Get temperature readings and user input values
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
-        dprintf("recv val=%u room=%u outside=%u\n", recv_temp, GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        dprintf("recv val=0x%x room=%u outside=%u\n", recv_temp,
+            GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        
+        if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
+        {
+            uint16_t t = GETUPPER16(recv_temp);
+            dprintf("temperature from adc: %u\n", t);
+        }
+
+        
+        // Store new temperature in case of user inputs
+        if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
+        {
+            set_temp = GETUPPER16(recv_temp);
+            dprintf("new temperature set: %u\n", set_temp);
+        }
 
         // Refresh display
         xTaskNotify(display_task_h, recv_temp,
             (eNotifyAction) eSetValueWithOverwrite);
             
         // Decide if we need to turn on or off the relay
-        update_relay_state(&relay_state,
-            set_temp, GETUPPER16(recv_temp));
-        set_relay_state(relay_state);
+        if (GETLOWER16(recv_temp) != MAGIC_SET_TEMP &&
+            GETLOWER16(recv_temp) != MAGIC_ACC_TEMP)
+        {
+            update_relay_state(&relay_state,
+                GETUPPER16(recv_temp), set_temp, hyst);
+            set_relay_state(relay_state);
+        }
     }
 }
