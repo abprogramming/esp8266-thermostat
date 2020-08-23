@@ -31,13 +31,13 @@ const uint8_t QA = 0x80;
 const uint8_t ERR_DISPLAY = 0xFE;
 
 // Value for displaying 'LoAd' at startup
-const uint32_t DISPLAY_TEST = 0x0;
+const uint32_t DISPLAY_TEST = 0x0; //TODO
 
 // Value to display 'SE' while setting temperature
-const uint16_t DISPLAY_SE = 0x0;
+const uint16_t DISPLAY_SE = 0x0; //TODO
 
 // Value to display 'AC' after accepting temperature
-const uint16_t DISPLAY_AC = 0x0;
+const uint16_t DISPLAY_AC = 0x0; //TODO
 
 
 /**
@@ -74,7 +74,6 @@ static uint32_t value_to_byte(uint32_t n)
     if (n & TEMP_NEG)
     {
         n -= TEMP_NEG;
-        printf("temp neg %u\n", n);
         neg = QA;
     }
     
@@ -87,7 +86,6 @@ static uint32_t value_to_byte(uint32_t n)
     v = n % 10;
     if (v)
         dot = QA;
-    printf("d1: %d\n", v);
 
     // The next two digits are the original
     // integer part, which is displayed as
@@ -95,14 +93,12 @@ static uint32_t value_to_byte(uint32_t n)
     n /= 10;
     v = n % 10;
     digit1 = digits[v] - neg;
-    printf("d2: %d\n", v);
+
     n /= 10;
     v = n % 10;
     digit2 = digits[v] - dot;
-    printf("d3: %d\n", v);
     
     out = (digit1 << 8) + digit2;
-    printf("%u %u out: %u\n", digit1, digit2, out);
     return (uint32_t) out;
 }
 
@@ -114,9 +110,9 @@ static uint32_t temp_values_to_bytes(uint32_t u)
     uint32_t out;
     uint32_t room = round_to_multiple(GETUPPER16(u), 50);
     uint32_t outs = round_to_multiple(GETLOWER16(u), 50);
-    dprintf("rounded: room %u outside %u\n", room, outs);
+    //dprintf("rounded: room %u outside %u\n", room, outs);
     out = (value_to_byte(room) << 16) + value_to_byte(outs);
-    dprintf("out2: %u\n", out);
+    //dprintf("out2: %u\n", out);
     return out;
 }
 
@@ -141,20 +137,21 @@ static uint32_t get_set_mode_display_bytes(uint32_t u, uint16_t text)
 
 void set_display_state(display_state_t state)
 {
+    // Negative logic!
     switch (state)
     {
         case DISPLAY_OFF:
-            gpio_write(PIN_74HC595_OE, 0);
+            gpio_write(PIN_74HC595_OE, 1);
             break;
         case DISPLAY_ON:
-            gpio_write(PIN_74HC595_OE, 1);
+            gpio_write(PIN_74HC595_OE, 2);
             break;
     }
 }
 
 static void test_display(void)
 {
-    shift_out(DISPLAY_TEST, sizeof(DISPLAY_TEST));
+    shift_out(0, 32);
     set_display_state(DISPLAY_ON);
     DELAY(3000);
     set_display_state(DISPLAY_OFF);
@@ -163,7 +160,8 @@ static void test_display(void)
 void display_control_task(void *pvParameters)
 {
     uint32_t recv_temp;
-    uint32_t out;
+    uint32_t out = 0xFFFFFFFF;
+    bool set_mode = false;
 
     shift_init();
     test_display();
@@ -175,13 +173,22 @@ void display_control_task(void *pvParameters)
             
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
+            set_mode = true;
             out = get_set_mode_display_bytes(recv_temp, DISPLAY_SE);
         }
         else if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
         {
+            // If the temperature is accepted, display it for
+            // 3 seconds and then return to normal mode
             out = get_set_mode_display_bytes(recv_temp, DISPLAY_AC);
+            shift_out(out, sizeof(out));
+            DELAY(3000);
+            set_mode = false;
+            continue;
         }
-        else
+        
+        // Block normal temperature display in set mode
+        if (!set_mode)
         {
             out = temp_values_to_bytes(recv_temp);
         }
