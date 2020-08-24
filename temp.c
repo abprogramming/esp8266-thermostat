@@ -67,6 +67,15 @@ uint32_t pack_floats(float t[])
     return (t0 + t1);
 }
 
+static void validate_temperature(float *t)
+{
+    if (*t > TEMP_MAX_VALID ||
+        *t < TEMP_MIN_VALID)
+    {
+        *t = TEMP_ERR;
+    }
+}
+
 void read_temp_task(void *pvParameters)
 {
     TaskHandle_t main_task_h = (TaskHandle_t) pvParameters;
