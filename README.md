@@ -30,10 +30,6 @@ RTOS task notification API and notifies subtasks (eg. display) to take specific 
 The main task is also responsible for the whole application's core functionality:
 decide when to turn the relay on or off.
 
-# Hardware prototype
-![Main panel](https://github.com/abprogramming/esp8266-thermostat/blob/master/mainpanel.png)
-![User panel](https://github.com/abprogramming/esp8266-thermostat/blob/master/userpanel.png)
-
 # Project status and further plans
 * The program is 95% finished.
 * The hardware prototype is built on a stripboard during Aug 2020.
@@ -47,3 +43,6 @@ to set temperatures and also to tweak with other settings, eg. hysteresis.
 * Then I want to write my own Dallas 1-wire protocol driver. I've used the one which comes with
 [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), which is really nice and I could
 achieve results fast, it's a bit way too high level for me.
+
+# Hardware prototype
+<img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/mainpanel.png" width="500"><img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/userpanel.png" width="500">
