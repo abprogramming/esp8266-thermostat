@@ -128,11 +128,8 @@ static uint32_t get_set_mode_display_bytes(uint32_t u, uint16_t text)
 
 
 /**
- * Display init, test sequence and controlling 
- * the display of digits and on/off states.
- * The test sequence consists of displaying
- * '8007' (BOOT) for 3 seconds, then turn off
- * the display.
+ * Controlling the display on/off states by
+ * 74HC595's OE pin.
  */
 
 void set_display_state(display_state_t state)
