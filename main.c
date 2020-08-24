@@ -39,7 +39,7 @@ void user_init(void)
     xTaskCreate(&display_control_task, "display_control",
         256, (void*) main_task_h, PRIO_DEFAULT, &display_task_h);
     // Handle user input, button, switch and potentiometer
-    xTaskCreate(&input_control_task, "display_control",
+    xTaskCreate(&input_control_task, "input_control",
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     
     // Init relay module
