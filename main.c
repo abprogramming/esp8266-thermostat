@@ -99,7 +99,6 @@ void main_task(void *pvParameters)
             dprintf("temperature from adc: %u\n", t);
         }
 
-        
         // Store new temperature in case of user inputs
         if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
         {
