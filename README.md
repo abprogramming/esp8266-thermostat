@@ -31,6 +31,8 @@ The main task is also responsible for the whole application's core functionality
 decide when to turn the relay on or off.
 
 # Hardware prototype
+![Main panel](https://github.com/abprogramming/esp8266-thermostat/blob/master/mainpanel.png)
+![User panel](https://github.com/abprogramming/esp8266-thermostat/blob/master/userpanel.png)
 
 # Project status and further plans
 * The program is 95% finished.
