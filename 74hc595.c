@@ -12,7 +12,7 @@ void shift_init(void)
 
 void shift_out(uint32_t value, size_t bits)
 {
-    gpio_write(PIN_74HC595_RCLK, 0);
+    gpio_write(PIN_74HC595_RCLK,  0);
     gpio_write(PIN_74HC595_SRCLK, 0);
 
     for (size_t i = 0; i < bits; i++)
