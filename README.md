@@ -34,7 +34,8 @@ decide when to turn the relay on or off.
 
 # Project status and further plans
 * The program is 95% finished.
-* The hardware prototype is built during Aug 2020. In the following weeks I'll need to test and debug
+* The hardware prototype is built on a stripboard during Aug 2020.
+In the following weeks I'll need to test and debug
 with the software.
 
 * If everything works I want to implement a minimal webserver, exploiting the
