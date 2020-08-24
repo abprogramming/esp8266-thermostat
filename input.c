@@ -1,6 +1,6 @@
 #include "common.h"
 #include "timers.h"
-#include "buttons.h"
+#include "display.h"
 #include "input.h"
 
 
