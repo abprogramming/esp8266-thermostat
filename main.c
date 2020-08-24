@@ -3,7 +3,7 @@
 #include "temp.h"
 #include "relay.h"
 #include "display.h"
-#include "buttons.h"
+#include "input.h"
 
 
 /** 
