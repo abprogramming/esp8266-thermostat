@@ -4,7 +4,7 @@ This is one of the many hardware/embedded software projects I've started buildin
 It is one of the most basic DIY projects, which is built by many hobbyists: a thermostat, based on the ESP8266 MCU and [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), a really nice FreeRTOS implementation for this microcrontoller.
 
 # Features
-* Two Dallas temperature sensors for inside and outside temperatures
+* Two Dallas temperature sensors for inside and outside temperatures.
 I'm using one in the TO-92 package for the inside and one in the
 waterproof version for the outside.
 * Displaying temperature on four, 7-segment displays.
@@ -20,7 +20,7 @@ by turning the decimal point on the second digit on.
 * The user interface consists of a tactile button and a potentiometer.
 By pressing the button the display is turned on to show the actual temperatures
 and also an xTimer starts. If there are no further actions taken, the display
-turns off after the timer stops. But if the user turns the knob of the potentiometer
+turns off after the timer expires. But if the user turns the knob of the potentiometer
 the program enters the set mode. The potentiometer value is converted to
 actual temperature values by ADC - the main reason for that choice is to
 test and utilize as many features of the ESP8266 in a single project as I can.
@@ -42,7 +42,7 @@ to set temperatures and also to tweak with other settings, eg. hysteresis.
 
 * Then I want to write my own Dallas 1-wire protocol driver. I've used the one which comes with
 [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), which is really nice and I could
-achieve results fast, it's a bit way too high level for me.
+achieve results fast, but it's a bit way too high level for me.
 
 # Hardware prototype
 <img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/mainpanel.png" width="500"><img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/userpanel.png" width="500">
