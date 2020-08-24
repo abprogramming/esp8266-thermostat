@@ -111,7 +111,13 @@ void button_interrupt(uint8_t gpio_num)
     
     // Start countdown to turn off display
     // if there's no user interaction
-    xTimerStartFromISR(display_timer, (TickType_t) 10);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    if(xTimerStartFromISR(display_timer,
+       &xHigherPriorityTaskWoken) != pdPASS)
+    {
+	// In case of failure, don't let the display on
+	set_display_state(DISPLAY_OFF);
+    }
  }
  
 void display_timer_cb(TimerHandle_t pxTimer)
