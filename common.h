@@ -35,8 +35,8 @@
 
 /////////////////////////////////////////////////////
 // Temperature limits
-#define TEMP_MIN (float) 18.0
-#define TEMP_MAX (float) 28.0
+#define TEMP_SET_MIN (float) 18.0
+#define TEMP_SET_MAX (float) 28.0
 
 // Set temperature after boot
 #define TEMP_INITIAL (float) 21.5

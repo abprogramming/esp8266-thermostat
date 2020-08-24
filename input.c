@@ -34,7 +34,7 @@ static bool set_mode = false;
 // conversion to temperature values
 
 static float celsius_per_adc_step = 
-    (TEMP_MAX - TEMP_MIN) / (ADC_MAX - ADC_MIN);
+    (TEMP_SET_MAX - TEMP_SET_MIN) / (ADC_MAX - ADC_MIN);
     
 // Epsilon value to suppress noise, below this value
 // we consider the value is unchanged
@@ -43,7 +43,7 @@ static const uint16_t adc_epsilon = 10;
 uint32_t adc_temp_to_uint32(uint16_t adc)
 {
     float t = (ADC_MAX - adc) * celsius_per_adc_step;
-    t += TEMP_MIN;
+    t += TEMP_SET_MIN;
     return FLT2UINT32(t);
 }
 
