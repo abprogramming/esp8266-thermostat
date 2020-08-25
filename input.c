@@ -2,7 +2,8 @@
 #include "timers.h"
 #include "display.h"
 #include "input.h"
-
+// for check_task_creation_result
+#include "main.h"
 
 /**
  * This module controls user inputs,
@@ -115,8 +116,8 @@ void button_interrupt(uint8_t gpio_num)
     if(xTimerStartFromISR(display_timer,
        &xHigherPriorityTaskWoken) != pdPASS)
     {
-	// In case of failure, don't let the display on
-	set_display_state(DISPLAY_OFF);
+        // In case of failure, don't let the display on
+        set_display_state(DISPLAY_OFF);
     }
  }
  
@@ -164,8 +165,9 @@ void input_control_task(void *pvParameters)
         pdFALSE, 0, &display_timer_cb);
 
     // Task for handling the temperature knob
-    xTaskCreate(&set_temperature_task, "set_temperature_task",
+    BaseType_t res = xTaskCreate(&set_temperature_task, "set_temperature_task",
         256, main_task_h, PRIO_DEFAULT, &set_temp_task_h);
+    check_task_creation_result(res, "knob control");
         
     for (;;)
     {
