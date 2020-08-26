@@ -50,11 +50,7 @@ void user_init(void)
     check_task_creation_result(res, "display control");
         
     // Handle user input, button, switch and potentiometer
-<<<<<<< HEAD
     xTaskCreate(&input_control_task, "input_task",
-=======
-    xTaskCreate(&input_control_task, "input_control",
->>>>>>> bdfca3d8982a105082683471115029d26b2b35e1
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     check_task_creation_result(res, "input control");
     
