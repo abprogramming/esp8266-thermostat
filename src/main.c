@@ -78,7 +78,7 @@ void check_task_creation_result(BaseType_t r, char *name)
 
 /////////////////////////////////////////////////////
 
-void update_relay_state
+static void update_relay_state
 (
     relay_state_t *st,
     uint16_t actual,

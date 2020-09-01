@@ -41,14 +41,14 @@ static float celsius_per_adc_step =
 // we consider the value is unchanged
 static const uint16_t adc_epsilon = 10;
 
-uint32_t adc_temp_to_uint32(uint16_t adc)
+inline static uint32_t adc_temp_to_uint32(uint16_t adc)
 {
     float t = (ADC_MAX - adc) * celsius_per_adc_step;
     t += TEMP_SET_MIN;
     return FLT2UINT32(t);
 }
 
-void set_temperature_task(void *pvParameters)
+static void set_temperature_task(void *pvParameters)
 {    
     uint16_t adc = 0;
     uint32_t notify_val = 0;
@@ -95,7 +95,7 @@ void set_temperature_task(void *pvParameters)
 // Temperature knob control and ADC voltage
 // conversion to temperature values
 
-void button_interrupt(uint8_t gpio_num)
+static void button_interrupt(uint8_t gpio_num)
 {
     (void)gpio_num;
  
@@ -121,7 +121,7 @@ void button_interrupt(uint8_t gpio_num)
     }
  }
  
-void display_timer_cb(TimerHandle_t pxTimer)
+static void display_timer_cb(TimerHandle_t pxTimer)
 {   
     // Suspend temperature knob control
     vTaskSuspend(set_temp_task_h);
