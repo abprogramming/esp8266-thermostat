@@ -35,7 +35,7 @@ decide when to turn the relay on or off.
 * The hardware prototype is built on a stripboard during Aug 2020.
 In the following weeks I'll need to test and debug
 with the software.
-
+* Design and etch a DIY PCB for the final product
 * If everything works I want to implement a minimal webserver, exploiting the
 WiFi features of ESP8266, it's main strength. On a simple interface users will be allowed
 to set temperatures and also to tweak with other settings, eg. hysteresis.
