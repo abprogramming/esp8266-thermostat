@@ -21,7 +21,16 @@
  * of them on oone GPIO pin.
  */
 
-float get_temperature_reading(uint8_t pin)
+static void validate_temperature(float *t)
+{
+    if (*t > TEMP_MAX_VALID ||
+        *t < TEMP_MIN_VALID)
+    {
+        *t = TEMP_ERR;
+    }
+}
+
+static float get_temperature_reading(uint8_t pin)
 {
     int r = 0;
     float temp;
@@ -43,6 +52,9 @@ float get_temperature_reading(uint8_t pin)
         return (float) TEMP_ERR;
     temp = ds18b20_read_temperature(pin, *addrs);
     dprintf("%f C from GPIO %d\n", temp, pin);
+
+    // Ensure that the reading is between the pre-defined constraints
+    validate_temperature(&temp);
     return temp;
 }
 
@@ -52,7 +64,7 @@ float get_temperature_reading(uint8_t pin)
 // to be sent as an RTOS task notification value.
 // The higher 16 bits will hold the inside temp.
 
-uint32_t pack_floats(float t[])
+inline static uint32_t pack_floats(float t[])
 {
     uint32_t neg = 0;
     uint32_t t0 = FLT2UINT32(t[0]);
@@ -65,15 +77,6 @@ uint32_t pack_floats(float t[])
     uint32_t t1 = FLT2UINT32(t[1]) + neg;
     t0 <<= 16;
     return (t0 + t1);
-}
-
-static void validate_temperature(float *t)
-{
-    if (*t > TEMP_MAX_VALID ||
-        *t < TEMP_MIN_VALID)
-    {
-        *t = TEMP_ERR;
-    }
 }
 
 void read_temp_task(void *pvParameters)
