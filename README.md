@@ -45,4 +45,4 @@ to set temperatures and also to tweak with other settings, eg. hysteresis.
 achieve results fast, but it's a bit way too high level for me.
 
 # Hardware prototype
-<img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/mainpanel.png" width="500"><img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/userpanel.png" width="500">
+<img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/doc/mainpanel.png" width="500"><img src="https://github.com/abprogramming/esp8266-thermostat/blob/master/doc/userpanel.png" width="500">
