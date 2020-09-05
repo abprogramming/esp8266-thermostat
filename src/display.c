@@ -141,7 +141,7 @@ void set_display_state(display_state_t state)
             gpio_write(PIN_74HC595_OE, 1);
             break;
         case DISPLAY_ON:
-            gpio_write(PIN_74HC595_OE, 2);
+            gpio_write(PIN_74HC595_OE, 0);
             break;
     }
 }
