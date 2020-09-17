@@ -54,14 +54,14 @@ uint32_t round_to_multiple(uint32_t n, uint32_t multiple)
     return ((n + multiple / 2) / multiple) *multiple;
 }
 
-static uint32_t value_to_byte(uint32_t n)
+static uint16_t value_to_byte(uint16_t n)
 {
     uint8_t v;
     uint8_t digit1 = 0x0;
     uint8_t digit2 = 0x0;
     uint8_t neg = 0x0;
     uint8_t dot = 0x0;
-    uint16_t out = 0x0;
+    uint16_t out = 0xFFFFFFFF;
 
     // Handle error value
     if (n == TEMP_ERR)
@@ -97,9 +97,9 @@ static uint32_t value_to_byte(uint32_t n)
     n /= 10;
     v = n % 10;
     digit2 = digits[v] - dot;
-    
+
     out = (digit1 << 8) + digit2;
-    return (uint32_t) out;
+    return (uint16_t) out;
 }
 
 // Contruct a 4-byte sequence to display 
@@ -108,9 +108,9 @@ static uint32_t value_to_byte(uint32_t n)
 static uint32_t temp_values_to_bytes(uint32_t u)
 {
     uint32_t out;
-    uint32_t room = round_to_multiple(GETUPPER16(u), 50);
-    uint32_t outs = round_to_multiple(GETLOWER16(u), 50);
-    //dprintf("rounded: room %u outside %u\n", room, outs);
+    uint16_t room = round_to_multiple(GETUPPER16(u), 50);
+    uint16_t outs = round_to_multiple(GETLOWER16(u), 50);
+    dprintf("rounded: room %u outside %u\n", room, outs);
     out = (value_to_byte(room) << 16) + value_to_byte(outs);
     //dprintf("out2: %u\n", out);
     return out;
@@ -148,8 +148,8 @@ void set_display_state(display_state_t state)
 
 static void test_display(void)
 {
-    shift_out(0, 32);
     set_display_state(DISPLAY_ON);
+    shift_out(DISPLAY_TEST, 32);
     DELAY(3000);
     set_display_state(DISPLAY_OFF);
 }
@@ -191,5 +191,6 @@ void display_control_task(void *pvParameters)
         }
         
         shift_out(out, sizeof(out));
+        DELAY(1000);
     }
 }
