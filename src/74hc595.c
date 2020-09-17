@@ -8,6 +8,9 @@ void shift_init(void)
     gpio_enable(PIN_74HC595_OE,    GPIO_OUTPUT);
     gpio_enable(PIN_74HC595_RCLK,  GPIO_OUTPUT);
     gpio_enable(PIN_74HC595_SRCLK, GPIO_OUTPUT);
+    
+    // Clear latches
+    shift_out(0xFFFFFFFF, 32);
 }
 
 void shift_out(uint32_t value, size_t bits)
