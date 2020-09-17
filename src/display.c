@@ -71,7 +71,7 @@ static uint16_t value_to_byte(uint16_t n)
     uint8_t digit2 = 0x0;
     uint8_t neg = 0x0;
     uint8_t dot = 0x0;
-    uint16_t out = 0xFFFFFFFF;
+    uint16_t out = 0xFFFF;
 
     // Handle error value
     if (n == TEMP_ERR)
