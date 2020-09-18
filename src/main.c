@@ -53,11 +53,6 @@ void user_init(void)
     xTaskCreate(&input_control_task, "input_task",
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     check_task_creation_result(res, "input control");
-    
-    // Init relay module
-    relay_init();
-    test_relay();
-    set_relay_state(RELAY_OFF);
 }
 
 // If any of these critical calls above fails, we should
@@ -76,39 +71,14 @@ void check_task_creation_result(BaseType_t r, char *name)
     }
 }
 
-/////////////////////////////////////////////////////
-
-static void update_relay_state
-(
-    relay_state_t *st,
-    uint16_t actual,
-    uint16_t target,
-    uint16_t hyst
-)
-{
-    dprintf("rs act %u tgt %u h %u\n", actual, target, hyst);
-    
-    if (*st == RELAY_OFF && 
-        actual <= target - hyst)
-    {
-        *st = RELAY_ON;
-    }
-    
-    if (*st == RELAY_ON && 
-        actual >= target + hyst)
-    {
-        *st = RELAY_OFF;
-    }
-}
-
-/////////////////////////////////////////////////////
-
 void main_task(void *pvParameters)
 {
     uint32_t recv_temp;
     uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
-    uint16_t hyst = (uint16_t) FLT2UINT32(HYST_INITIAL);
-    relay_state_t relay_state = RELAY_OFF;
+
+    // Initialize relay control object
+    struct relay_module_t relay;
+    relay_init(&relay, PIN_RELAY);
     
     // Wait some time to be sure everything is ready
     DELAY(3000);
@@ -142,9 +112,13 @@ void main_task(void *pvParameters)
         if (GETLOWER16(recv_temp) != MAGIC_SET_TEMP &&
             GETLOWER16(recv_temp) != MAGIC_ACC_TEMP)
         {
-            update_relay_state(&relay_state,
-                GETUPPER16(recv_temp), set_temp, hyst);
-            set_relay_state(relay_state);
+            relay_update_ret_t ret = update_relay_state
+                (&relay, GETUPPER16(recv_temp), set_temp);
+            if (ret == STATE_CHANGED)
+            {
+              //TODO notify logger
+            }
+            
         }
     }
 }
