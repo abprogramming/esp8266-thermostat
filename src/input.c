@@ -1,6 +1,6 @@
 #include "common.h"
 #include "timers.h"
-#include "display.h"
+#include "7segment.h"
 #include "input.h"
 // for check_task_creation_result
 #include "main.h"
@@ -56,26 +56,22 @@ static void set_temperature_task(void *pvParameters)
     for (;;)
     {
         adc = sdk_system_adc_read();
-        dprintf("adc %u\n", adc);
-        
-        // After starting this task is created we read and store
-        // the actual value of the potentiometer to initialize
-        // last_adc_value and then suspend this task.
-        // It will be woken up button_interrupt. 
+
         if (last_adc_value == UINT16_MAX)
         {
             last_adc_value = adc;
-            vTaskSuspend(NULL);
         }
         
         if (abs(adc - last_adc_value) > adc_epsilon)
         {
+            _7segment_set_state(DISPLAY_ON); 
             set_mode = true;
             
             // Keep display alive
             xTimerReset(display_timer, 0);
             
             notify_val   = adc_temp_to_uint32(adc);
+            //dprintf("from adc %u\n", notify_val);
             notify_val <<= 16;
             notify_val  += MAGIC_SET_TEMP;
             
@@ -86,7 +82,7 @@ static void set_temperature_task(void *pvParameters)
                 
             last_adc_value = adc;
         }
-        DELAY(100);
+        DELAY(10);
     }
 }
 
@@ -97,7 +93,9 @@ static void set_temperature_task(void *pvParameters)
 
 static void button_interrupt(uint8_t gpio_num)
 {
-    (void)gpio_num;
+    //(void)gpio_num;
+    
+    dprintf("button interrupt %d\n", gpio_num);
  
     // Disable this ISR until the display
     // is turned off
@@ -105,10 +103,10 @@ static void button_interrupt(uint8_t gpio_num)
         GPIO_INTTYPE_NONE, &button_interrupt);
         
     // Turn on display
-    set_display_state(DISPLAY_ON);
+    _7segment_set_state(DISPLAY_ON);
     
     // Start temperature knob control
-    xTaskResumeFromISR(set_temp_task_h);
+    //xTaskResumeFromISR(set_temp_task_h);
     
     // Start countdown to turn off display
     // if there's no user interaction
@@ -117,14 +115,14 @@ static void button_interrupt(uint8_t gpio_num)
        &xHigherPriorityTaskWoken) != pdPASS)
     {
         // In case of failure, don't let the display on
-        set_display_state(DISPLAY_OFF);
+        _7segment_set_state(DISPLAY_OFF);
     }
  }
  
 static void display_timer_cb(TimerHandle_t pxTimer)
 {   
     // Suspend temperature knob control
-    vTaskSuspend(set_temp_task_h);
+    //vTaskSuspend(set_temp_task_h);
     
     // If a new temperature was set,
     // send it for the main task
@@ -140,7 +138,7 @@ static void display_timer_cb(TimerHandle_t pxTimer)
      }       
     
     // Turn off display
-    set_display_state(DISPLAY_OFF);
+    //_7segment_set_state(DISPLAY_OFF);
        
     // Re-enable interrupt to handle the
     // button press event
