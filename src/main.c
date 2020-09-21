@@ -77,8 +77,7 @@ void main_task(void *pvParameters)
     uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
 
     // Initialize relay control object
-    struct relay_module_t relay;
-    relay_init(&relay, PIN_RELAY);
+    struct relay_module_t relay = relay_module_create(PIN_RELAY);
     
     // Wait some time to be sure everything is ready
     DELAY(3000);

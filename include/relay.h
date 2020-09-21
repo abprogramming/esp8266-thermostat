@@ -25,7 +25,7 @@ struct relay_module_t
     uint16_t hysteresis;
 };
 
-void relay_init(struct relay_module_t *r, uint8_t pin);
+struct relay_module_t relay_module_create(uint8_t pin);
 
 // Test the relay module: turn on/off three times
 void test_relay(struct relay_module_t *r);

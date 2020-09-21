@@ -29,16 +29,19 @@ void test_relay(struct relay_module_t *r)
     }
 }
 
-void relay_init(struct relay_module_t *r, uint8_t pin)
+struct relay_module_t relay_module_create(uint8_t pin)
 {
-    r->pin = pin;
-    r->hysteresis = (uint16_t) FLT2UINT32(HYST_INITIAL);
+    struct relay_module_t r;
+    r.pin = pin;
+    r.hysteresis = (uint16_t) FLT2UINT32(HYST_INITIAL);
     
-    gpio_enable(r->pin, GPIO_OUTPUT);
-    test_relay(r);
+    gpio_enable(pin, GPIO_OUTPUT);
+    test_relay(&r);
     
-    r->state = RELAY_OFF;
-    relay_toggle(r);
+    r.state = RELAY_OFF;
+    relay_toggle(&r);
+    
+    return r;
 }
 
 relay_update_ret_t update_relay_state
