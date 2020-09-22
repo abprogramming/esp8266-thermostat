@@ -67,6 +67,8 @@ bool _7segment_print(const char* str)
     for (size_t i = 0; i < sz; i++)
     {
         char c = str[i];
+
+	// Ignore spaces
         if (c == ' ')
         {
             continue;
