@@ -76,7 +76,7 @@ inline static uint32_t pack_floats(float t[])
     }
     uint32_t t1 = FLT2UINT32(t[1]) + neg;
     t0 <<= 16;
-    return (t0 + t1);
+    return t0 + t1;
 }
 
 void read_temp_task(void *pvParameters)
