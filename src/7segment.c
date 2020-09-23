@@ -68,7 +68,7 @@ bool _7segment_print(const char* str)
     {
         char c = str[i];
 
-	// Ignore spaces
+    // Ignore spaces
         if (c == ' ')
         {
             continue;
