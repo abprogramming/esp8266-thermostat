@@ -2,8 +2,9 @@
 #include "main.h"
 #include "temp.h"
 #include "relay.h"
-#include "display.h"
-#include "input.h"
+//#include "display.h"
+//#include "input.h"
+#include "server.h"
 
 
 /** 
@@ -25,6 +26,7 @@ static TaskHandle_t main_task_h    = NULL;
 static TaskHandle_t temp_task_h    = NULL;
 static TaskHandle_t display_task_h = NULL;
 static TaskHandle_t input_task_h   = NULL;
+static TaskHandle_t httpd_task_h   = NULL;
  
 void user_init(void)
 {
@@ -40,19 +42,28 @@ void user_init(void)
     // Each task receives the handle for the main task
 
     // Read temperature data from sensors
-    xTaskCreate(&read_temp_task, "read_temp",
+    /*
+    res = xTaskCreate(&read_temp_task, "read_temp",
         256, (void*) main_task_h, PRIO_DEFAULT, &temp_task_h);
     check_task_creation_result(res, "temperature sensor");
-    
+	*/
+
+     /* 
     // Handle the 7-segment displays
-    xTaskCreate(&display_control_task, "display_control",
+    res = xTaskCreate(&display_control_task, "display_control",
         256, (void*) main_task_h, PRIO_DEFAULT, &display_task_h);
     check_task_creation_result(res, "display control");
-        
+     
     // Handle user input, button, switch and potentiometer
-    xTaskCreate(&input_control_task, "input_task",
+    res = xTaskCreate(&input_control_task, "input_task",
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     check_task_creation_result(res, "input control");
+    */
+	
+	// Initialize SoftAP and HTTP server
+	// the function returns a handle to the task created
+    httpd_task_h = server_init(main_task_h);
+    
 }
 
 // If any of these critical calls above fails, we should
@@ -104,8 +115,8 @@ void main_task(void *pvParameters)
         }
 
         // Refresh display
-        xTaskNotify(display_task_h, recv_temp,
-            (eNotifyAction) eSetValueWithOverwrite);
+        //xTaskNotify(display_task_h, recv_temp,
+        //    (eNotifyAction) eSetValueWithOverwrite);
             
         // Decide if we need to turn on or off the relay
         if (GETLOWER16(recv_temp) != MAGIC_SET_TEMP &&
