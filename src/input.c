@@ -2,8 +2,7 @@
 #include "timers.h"
 #include "7segment.h"
 #include "input.h"
-// for check_task_creation_result
-#include "main.h"
+#include "main.h" // for check_task_creation_result
 
 /**
  * This module controls user inputs,
