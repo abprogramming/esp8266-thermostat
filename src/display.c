@@ -97,7 +97,7 @@ void display_control_task(void *pvParameters)
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
         // Display user defined ('set') temperature
-        display_set_temp("SE", recv_temp);
+            display_set_temp("SE", recv_temp);
             set_mode = true;
         }
         
@@ -115,7 +115,7 @@ void display_control_task(void *pvParameters)
 
         if (!set_mode) // Block normal temperature display in set mode
         {
-        display_normal_temp(recv_temp);
+            display_normal_temp(recv_temp);
         }
        
 
