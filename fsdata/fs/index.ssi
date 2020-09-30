@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link rel="stylesheet" type="text/css" href="css/siimple.min.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="shortcut icon" href="img/favicon.png">
+		<title>Thermostat Control Center</title>
+			
+		<script>
+			var init_form = function()
+			{
+				var select = document.getElementById("tempselect");
+				var i = 18;
+				var tgt = document.getElementById('tgttemp').innerHTML;
+				tgt = tgt.split(/-->/).pop().trim();
+				for (i = 18; i < 28; i += 0.5)
+				{
+					var s = i.toString()
+					select.options[select.options.length] = new Option(s, s);
+					
+					
+					if (i == parseInt(tgt) )
+					{
+						select.options[select.options.length - 1].selected = true;
+					}
+				}
+				
+				var forceon = document.getElementById('relayforceon').value;
+				forceon = forceon.split(/-->/).pop().trim();
+				if (parseInt(forceon) == 1)
+				{
+					document.getElementById('forceon').checked = true;
+					//document.getElementById('forceoff').checked = false;
+				}
+				else
+				{
+					document.getElementById('forceon').checked = false;
+					//document.getElementById('forceoff').checked = true;
+				}
+				
+			};
+
+			if (document.readyState === "complete" ||
+				(document.readyState !== "loading" &&
+				!document.documentElement.doScroll))
+			{
+			  init_form();
+			} else {
+			  document.addEventListener("DOMContentLoaded", init_form);
+			}
+			
+			var submit_relay = function() {
+				if (document.getElementById('forceon').checked)
+					window.location.href = 'setrelay?on=1';
+				else
+					window.location.href = 'setrelay?off=1';
+			};
+		</script>
+		
+	</head>
+	<body onload="populate()">
+
+		<div class="grid main">
+			<h1>Control Center</h1>
+
+			<form method="get" action="settemp"> 
+				<div class="cover" align="center" style="margin-bottom: 30px">
+					<label class="siimple-label">Set temperature: </label><br>
+					<select class="siimple-select siimple-select--fluid" id="tempselect" name="val" style="width: 50%; height: 35px;" onchange="this.form.submit()">
+					</select>
+				</div>
+			</form>
+			<input type="hidden" value="<!--#forceon-->" id="relayforceon">
+			<form method="get" action="setrelay"> 
+				<div class="cover" align="center" style="margin-bottom: 50px">
+					Force relay ON
+					<div class="onoffswitch">
+						<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="forceon" onchange="setTimeout(() => { submit_relay() }, 2000); ">
+						<label class="onoffswitch-label" for="forceon">
+							<span class="onoffswitch-inner"></span>
+							<span class="onoffswitch-switch"></span>
+						</label>
+					</div>
+				</div>
+			</form>
+			
+			<!---
+			<div class="cover" align="center">
+				Force relay OFF
+				<div class="onoffswitch">
+					<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="forceoff" onclick="void();">
+					<label class="onoffswitch-label" for="forceoff">
+						<span class="onoffswitch-inner"></span>
+						<span class="onoffswitch-switch"></span>
+					</label>
+				</div>
+			</div>
+			--->
+
+			<h1>Thermostat Status</h1>
+			<table class="table table-striped">
+				<tr>
+					<td><b>Room temperature:</b></td>
+					<td><!--#roomtemp--> &deg;C</td>
+				</tr>
+				<tr>
+					<td><b>Outside temperature:</b></td>
+					<td><!--#outstemp--> &deg;C</td>
+				</tr>
+				<tr>
+					<td><b>Target temperature:</b></td>
+					<td id="tgttemp"><!--#tgttemp--> &deg;C</td>
+				</tr>
+				<tr>
+					<td><b>Relay state:</b></td>
+					<td><!--#rstate--></td>
+				</tr>
+			</table>
+
+		</div>
+	</body>
+</html>
