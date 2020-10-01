@@ -2,10 +2,36 @@
 #define __TEMPLOG_H__
 
 /**
- * Store temperature history
+ * Buffer implementation for storing
+ * temperature and relay history
  */
 
-void log_task(void *pvParameters);
-void get_log(uint32_t **log, size_t *bits);
+struct log_entry_t
+{
+    uint32_t ts;
+    char v[12];
+};
+
+struct log_buffer_t
+{
+    size_t entries;
+    struct log_entry_t *first;
+    struct log_entry_t *ptr_wr;
+    struct log_entry_t *ptr_rd;
+};
+
+struct log_buffer_t log_buffer_init(size_t sz);
+
+// Increment write pointer and write new value
+void log_buffer_push(struct log_buffer_t *buf, struct log_entry_t val);
+
+// Increment read pointer and return the pointed value
+struct log_entry_t log_buffer_getnext(struct log_buffer_t *buf);
+
+// Set read pointer to the first element
+void log_buffer_reset(struct log_buffer_t *buf);
+
+// Points to the memory space right after the last element
+struct log_entry_t *log_buffer_end(struct log_buffer_t *buf);
 
 #endif
