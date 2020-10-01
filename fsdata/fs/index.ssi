@@ -11,6 +11,14 @@
 		<script>
 			var init_form = function()
 			{
+				// Set server time
+				if (!(window.location.href.includes("settime")))
+				{
+					var newtime = Date.now();
+					newtime = Math.floor(newtime / 1000);
+					window.location.href = 'settime?val=' + newtime.toString();
+				}
+				
 				var select = document.getElementById("tempselect");
 				var i = 18;
 				var tgt = document.getElementById('tgttemp').innerHTML;
@@ -57,10 +65,17 @@
 				else
 					window.location.href = 'setrelay?off=1';
 			};
+			
+			
 		</script>
 		
 	</head>
-	<body onload="populate()">
+	<body>
+		
+		<ul class="navbar">
+			<li><a class="active" href="/">Home</a></li>
+			<li><a href="log">Log</a></li>
+		</ul>
 
 		<div class="grid main">
 			<h1>Control Center</h1>
