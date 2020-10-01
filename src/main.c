@@ -42,11 +42,9 @@ void user_init(void)
     // Each task receives the handle for the main task
 
     // Read temperature data from sensors
-    /*
     res = xTaskCreate(&read_temp_task, "read_temp",
         256, (void*) main_task_h, PRIO_DEFAULT, &temp_task_h);
     check_task_creation_result(res, "temperature sensor");
-	*/
 
      /* 
     // Handle the 7-segment displays
@@ -59,9 +57,9 @@ void user_init(void)
         256, (void*) main_task_h, PRIO_DEFAULT, &input_task_h);
     check_task_creation_result(res, "input control");
     */
-	
-	// Initialize SoftAP and HTTP server
-	// the function returns a handle to the task created
+    
+    // Initialize SoftAP and HTTP server
+    // the function returns a handle to the task created
     httpd_task_h = server_init(main_task_h);
     
 }
@@ -84,6 +82,7 @@ void check_task_creation_result(BaseType_t r, char *name)
 
 void main_task(void *pvParameters)
 {
+    bool force_on = false;
     uint32_t recv_temp;
     uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
 
@@ -95,15 +94,19 @@ void main_task(void *pvParameters)
     
     for (;;)
     {
+        bool normal_temp = true;
+        
         // Get temperature readings and user input values
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
+            
         dprintf("recv val=0x%x room=%u outside=%u\n", recv_temp,
             GETUPPER16(recv_temp), GETLOWER16(recv_temp));
         
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
             uint16_t t = GETUPPER16(recv_temp);
+            normal_temp = false;
             dprintf("temperature from adc: %u\n", t);
         }
 
@@ -111,24 +114,49 @@ void main_task(void *pvParameters)
         if (GETLOWER16(recv_temp) == MAGIC_ACC_TEMP)
         {
             set_temp = GETUPPER16(recv_temp);
+            normal_temp = false;
             dprintf("new temperature set: %u\n", set_temp);
+        }
+        
+        if (recv_temp == MAGIC_FORCERELAY_ON ||
+            recv_temp == MAGIC_FORCERELAY_OFF)
+        {
+            force_on =
+                (recv_temp == MAGIC_FORCERELAY_ON ? true : false);
+            normal_temp = false;
         }
 
         // Refresh display
         //xTaskNotify(display_task_h, recv_temp,
         //    (eNotifyAction) eSetValueWithOverwrite);
-            
-        // Decide if we need to turn on or off the relay
-        if (GETLOWER16(recv_temp) != MAGIC_SET_TEMP &&
-            GETLOWER16(recv_temp) != MAGIC_ACC_TEMP)
+        
+        
+        if (normal_temp)
         {
-            relay_update_ret_t ret = update_relay_state
-                (&relay, GETUPPER16(recv_temp), set_temp);
+            // Send temperatures to server module
+            xTaskNotify(httpd_task_h, recv_temp,
+                (eNotifyAction) eSetValueWithOverwrite);
+  
+            // Decide if we need to turn on or off the relay
+            relay_update_ret_t ret;
+            if (force_on)
+            {
+                ret = update_relay_state(&relay, 1000, 2000);
+            }
+            else 
+            {
+                ret = update_relay_state
+                    (&relay, GETUPPER16(recv_temp), set_temp);
+            }
             if (ret == STATE_CHANGED)
             {
-              //TODO notify logger
-            }
-            
+                uint32_t val =
+                    (relay.state == RELAY_OFF ?
+                                    MAGIC_RELAY_OFF :
+                                    MAGIC_RELAY_ON);
+                 xTaskNotify(httpd_task_h, val,
+                     (eNotifyAction) eSetValueWithOverwrite);
+            }   
         }
     }
 }
