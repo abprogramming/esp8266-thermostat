@@ -63,6 +63,7 @@
 
 // Priorities for RTOS tasks
 #define PRIO_DEFAULT 2
+#define PRIO_HIGH    3
 
 // Define a convient macro for delays,
 // looks better when used frequently in the code
@@ -100,6 +101,18 @@
 // user's acceptance of the new
 // temperature setting in set mode
 #define MAGIC_ACC_TEMP 0xACCE
+
+// Magic value indicating relay off event
+#define MAGIC_RELAY_ON 0xABC0
+
+// Magic value indicating relay on event
+#define MAGIC_RELAY_OFF 0xABC1
+
+// Magic value for enabling force relay on
+#define MAGIC_FORCERELAY_ON 0xABC2
+
+// Magic value for disabling force relay on
+#define MAGIC_FORCERELAY_OFF 0xABC3
 
 // Scaling and rounding floating point values
 // to 32-bit unsigned integers.
