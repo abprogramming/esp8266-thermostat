@@ -7,31 +7,6 @@
 		<link rel="stylesheet" type="text/css" href="css/style.css">
 		<link rel="shortcut icon" href="img/favicon.png">
 		<title>Thermostat Control Center</title>
-			
-		<script>
-			var init_form = function()
-			{
-				var ts = document.getElementById('servertime').innerHTML;
-				ts = ts.split(/-->/).pop().trim();
-				var date = new Date(parseInt(ts) * 1000);
-				var hours = date.getHours();
-				var minutes = "0" + date.getMinutes();
-				var seconds = "0" + date.getSeconds();
-				document.getElementById('servertime').innerHTML =
-					hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-			}
-
-			if (document.readyState === "complete" ||
-				(document.readyState !== "loading" &&
-				!document.documentElement.doScroll))
-			{
-			  init_form();
-			} else {
-			  document.addEventListener("DOMContentLoaded", init_form);
-			}
-			
-		</script>
-		
 	</head>
 	<body>
 		
@@ -53,38 +28,29 @@
 
 			<h1>Thermostat Log</h1>
 			<table class="table table-striped">
-				<tr>
-					<td><!--#log1--></td>
-				</tr>
-				<tr>
-					<td><!--#log2--></td>
-				</tr>
-				<tr>
-					<td><!--#log3--></td>
-				</tr>
-				<tr>
-					<td><!--#log4--></td>
-				</tr>
-				<tr>
-					<td><!--#log5--></td>
-				</tr>
-				<tr>
-					<td><!--#log6--></td>
-				</tr>
-				<tr>
-					<td><!--#log7--></td>
-				</tr>
-				<tr>
-					<td><!--#log8--></td>
-				</tr>
-				<tr>
-					<td><!--#log9--></td>
-				</tr>
-				<tr>
-					<td><!--#log10--></td>
-				</tr>
+				<tr><td><!--#log1--></td></tr><tr><td><!--#log2--></td></tr><tr><td><!--#log3--></td></tr><tr><td><!--#log4--></td></tr><tr><td><!--#log5--></td></tr>
+				<tr><td><!--#log6--></td></tr><tr><td><!--#log7--></td></tr><tr><td><!--#log8--></td></tr><tr><td><!--#log9--></td></tr><tr><td><!--#log10--></td></tr>
+				<tr><td><!--#log11--></td></tr><tr><td><!--#log12--></td></tr><tr><td><!--#log13--></td></tr><tr><td><!--#log14--></td></tr><tr><td><!--#log15--></td></tr>
+				<tr><td><!--#log16--></td></tr><tr><td><!--#log17--></td></tr><tr><td><!--#log18--></td></tr><tr><td><!--#log19--></td></tr><tr><td><!--#log20--></td></tr>
+				<tr><td><!--#log21--></td></tr><tr><td><!--#log22--></td></tr><tr><td><!--#log23--></td></tr><tr><td><!--#log24--></td></tr><tr><td><!--#log25--></td></tr>
+				<tr><td><!--#log26--></td></tr><tr><td><!--#log27--></td></tr><tr><td><!--#log28--></td></tr><tr><td><!--#log29--></td></tr><tr><td><!--#log30--></td></tr>
+				<tr><td><!--#log31--></td></tr><tr><td><!--#log32--></td></tr><tr><td><!--#log33--></td></tr><tr><td><!--#log34--></td></tr><tr><td><!--#log35--></td></tr>
+				<tr><td><!--#log36--></td></tr><tr><td><!--#log37--></td></tr><tr><td><!--#log38--></td></tr><tr><td><!--#log39--></td></tr><tr><td><!--#log40--></td></tr>
+				<tr><td><!--#log41--></td></tr><tr><td><!--#log42--></td></tr><tr><td><!--#log43--></td></tr><tr><td><!--#log44--></td></tr><tr><td><!--#log45--></td></tr>
+				<tr><td><!--#log46--></td></tr><tr><td><!--#log47--></td></tr><tr><td><!--#log48--></td></tr><tr><td><!--#log49--></td></tr><tr><td><!--#log50--></td></tr>
+				<tr><td><!--#log51--></td></tr><tr><td><!--#log52--></td></tr><tr><td><!--#log53--></td></tr><tr><td><!--#log54--></td></tr><tr><td><!--#log55--></td></tr>
+				<tr><td><!--#log56--></td></tr><tr><td><!--#log57--></td></tr><tr><td><!--#log58--></td></tr><tr><td><!--#log59--></td></tr><tr><td><!--#log60--></td></tr>
+				<tr><td><!--#log61--></td></tr><tr><td><!--#log62--></td></tr><tr><td><!--#log63--></td></tr><tr><td><!--#log64--></td></tr><tr><td><!--#log65--></td></tr>
+				<tr><td><!--#log66--></td></tr><tr><td><!--#log67--></td></tr><tr><td><!--#log68--></td></tr><tr><td><!--#log69--></td></tr><tr><td><!--#log70--></td></tr>
+				<tr><td><!--#log71--></td></tr><tr><td><!--#log72--></td></tr><tr><td><!--#log73--></td></tr><tr><td><!--#log74--></td></tr><tr><td><!--#log75--></td></tr>
+				<tr><td><!--#log76--></td></tr><tr><td><!--#log77--></td></tr><tr><td><!--#log78--></td></tr><tr><td><!--#log79--></td></tr><tr><td><!--#log80--></td></tr>
+				<tr><td><!--#log81--></td></tr><tr><td><!--#log82--></td></tr><tr><td><!--#log83--></td></tr><tr><td><!--#log84--></td></tr><tr><td><!--#log85--></td></tr>
+				<tr><td><!--#log86--></td></tr><tr><td><!--#log87--></td></tr><tr><td><!--#log88--></td></tr><tr><td><!--#log89--></td></tr><tr><td><!--#log90--></td></tr>
+				<tr><td><!--#log91--></td></tr><tr><td><!--#log92--></td></tr><tr><td><!--#log93--></td></tr><tr><td><!--#log94--></td></tr><tr><td><!--#log95--></td></tr>
+				<tr><td><!--#log96--></td></tr><tr><td><!--#log97--></td></tr><tr><td><!--#log98--></td></tr><tr><td><!--#log99--></td></tr><tr><td><!--#log100--></td></tr>
 			</table>
 
 		</div>
 	</body>
 </html>
+
