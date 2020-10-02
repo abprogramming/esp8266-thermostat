@@ -7,7 +7,7 @@
 #include "templog.h"
 #include "clock.h"
 #include "server.h"
-
+#include "cgi-ssi.h"
 
 static TaskHandle_t main_task_h = NULL;
 
@@ -23,22 +23,48 @@ struct log_buffer_t templog;
 /////////////////////////////////////////////////////
 // Manage templog
 
-static void log_settemp()
-{
-    char v[12];
-    memset((void*) v, 0, 12);
-    snprintf(v, 12, "SET %0.1f", TEMP_TGT_V);
-    struct log_entry_t e;
-    e.ts = get_time();
-    strncpy(e.v, v, 12);
-    log_buffer_push(&templog, e);
-}
+static uint32_t last_temp_time = 0;
+static const uint32_t temp_log_frequency = 10;//10 * 60;
 
-static void log_relay()
+enum logtype {
+    LOG_TEMP,
+    LOG_RELAY,
+    LOG_SETTEMP
+};
+
+static void write_log(enum logtype t)
 {
     char v[12];
     memset((void*) v, 0, 12);
-    snprintf(v, 12, "RELAY %s", RSTATE ? "On" : "Off");
+    
+    // Not every temp. reading should be stored...
+    uint32_t ut = 0;
+    if (t == LOG_TEMP)
+    {
+        ut = get_uptime();
+        if (last_temp_time != 0 &&
+            last_temp_time + temp_log_frequency > ut)
+        {
+            return;
+        }
+    }
+    
+    switch (t)
+    {
+        case LOG_TEMP:
+            snprintf(v, 12, "R:%0.1f O:%0.1f", TEMP_ROOM_V, TEMP_OUTS_V);
+            last_temp_time = ut;
+            break;
+        case LOG_RELAY:
+            snprintf(v, 12, "RELAY %s", RSTATE ? "On" : "Off");
+            break;
+        case LOG_SETTEMP:
+            snprintf(v, 12, "SET %0.1f", TEMP_TGT_V);
+            break;
+        default:
+            return;
+    }
+
     struct log_entry_t e;
     e.ts = get_time();
     strncpy(e.v, v, 12);
@@ -47,16 +73,6 @@ static void log_relay()
 
 /////////////////////////////////////////////////////
 // CGI/SSI Handlers
-
-enum {
-    TEMP_TGT,
-    TEMP_ROOM,
-    TEMP_OUTS,
-    RELAY_STATE,
-    RELAY_FORCEON,
-    LOG_TSTAMP,
-    SERVER_UPTIME
-};
 
 static void notify_settemp()
 {
@@ -78,11 +94,14 @@ static void notify_forceon()
 
 int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
 {
+     char buf[72];
+    
     // This is for the log entries
     if (iIndex > SERVER_UPTIME)
     {
         struct log_entry_t e = log_buffer_getnext(&templog);
-        snprintf(pcInsert, iInsertLen, "%u | %s", e.ts, e.v);
+        ts_to_str(e.ts, buf);
+        snprintf(pcInsert, iInsertLen, "%s %s", buf, e.v);
         return (strlen(pcInsert));
     }
     
@@ -118,7 +137,8 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
             snprintf(pcInsert, iInsertLen, "%u", RFORCEON);
             break;
         case LOG_TSTAMP:
-            snprintf(pcInsert, iInsertLen, "%u", get_time());
+            ts_to_str(get_time(), buf);
+            snprintf(pcInsert, iInsertLen, "%s", buf); 
             break;
         case SERVER_UPTIME:
             snprintf(pcInsert, iInsertLen, "%u", get_uptime());
@@ -140,7 +160,7 @@ const char *settemp_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
         {
             TEMP_TGT_V = atof(pcValue[i]);
             notify_settemp();
-            log_settemp();
+            write_log(LOG_SETTEMP);
         }
     }
     return "/index.ssi";
@@ -183,7 +203,7 @@ const char *settime_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
     return "/index.ssi";
 }
 
-void httpd_task(void *pvParameters)
+static void httpd_task(void *pvParameters)
 {
     tCGI pCGIs[] =
     {
@@ -191,29 +211,6 @@ void httpd_task(void *pvParameters)
         { "/setrelay", (tCGIHandler) setrelay_cgi_handler },
         { "/log",      (tCGIHandler) logpage_cgi_handler  },
         { "/settime",  (tCGIHandler) settime_cgi_handler  },
-    };
-
-    // Each element in the array corresponds to
-    // a member of the unnamed enum above
-    const char *pcConfigSSITags[] =
-    {
-        "tgttemp",
-        "roomtemp", 
-        "outstemp",
-        "rstate",
-        "forceon",
-        "tstamp",
-        "uptime",
-        "log1",
-        "log2",
-        "log3",
-        "log4",
-        "log5",
-        "log6",
-        "log7",
-        "log8",
-        "log9",
-        "log10",
     };
 
     // register handlers and start the server
@@ -231,17 +228,18 @@ void httpd_task(void *pvParameters)
         if (recv_temp == MAGIC_RELAY_OFF)
         {
             RSTATE = 0;
-            log_relay();
+            write_log(LOG_RELAY);
         }
         else if (recv_temp == MAGIC_RELAY_ON)
         {
             RSTATE = 1;
-            log_relay();
+            write_log(LOG_RELAY);
         }
         else 
         {
             TEMP_ROOM_V = ((float) GETUPPER16(recv_temp)) / 100;
             TEMP_OUTS_V = ((float) GETLOWER16(recv_temp)) / 100;
+            write_log(LOG_TEMP);
         }
     }
 }
@@ -253,7 +251,7 @@ void httpd_task(void *pvParameters)
 TaskHandle_t server_init(TaskHandle_t _main_task_h)
 {
     start_clock();
-    templog = log_buffer_init(8 * 60);
+    templog = log_buffer_init(100);
     
     main_task_h = _main_task_h;
     sdk_wifi_set_opmode(SOFTAP_MODE);
