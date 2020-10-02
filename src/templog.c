@@ -21,21 +21,23 @@ void log_buffer_push(struct log_buffer_t *buf, struct log_entry_t val)
 }
 
 struct log_entry_t log_buffer_getnext(struct log_buffer_t *buf)
-{
-    buf->ptr_rd++;
-    if (buf->ptr_rd >= log_buffer_end(buf))
-        buf->ptr_rd = buf->first;
-    return (*buf->ptr_rd);
+{      
+    if (buf->ptr_rd < buf->first)
+    {
+		buf->ptr_rd = log_buffer_end(buf);
+		buf->ptr_rd--;
+	}
+    struct log_entry_t out = *(buf->ptr_rd);
+    buf->ptr_rd--;
+    return out;
 }
 
 void log_buffer_reset(struct log_buffer_t *buf)
 {
-    buf->ptr_rd = buf->first;
+    buf->ptr_rd = buf->ptr_wr;
 }
 
 struct log_entry_t *log_buffer_end(struct log_buffer_t *buf)
 {
     return buf->first + (sizeof(struct log_entry_t) * (buf->entries));
 }
-
-

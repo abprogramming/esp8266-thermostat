@@ -25,10 +25,10 @@ struct log_buffer_t log_buffer_init(size_t sz);
 // Increment write pointer and write new value
 void log_buffer_push(struct log_buffer_t *buf, struct log_entry_t val);
 
-// Increment read pointer and return the pointed value
+// Read the next value. The reading is performed backwards!
 struct log_entry_t log_buffer_getnext(struct log_buffer_t *buf);
 
-// Set read pointer to the first element
+// Set read pointer to the last written element
 void log_buffer_reset(struct log_buffer_t *buf);
 
 // Points to the memory space right after the last element
