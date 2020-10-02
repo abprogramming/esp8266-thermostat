@@ -47,7 +47,7 @@ struct relay_module_t relay_module_create(uint8_t pin)
 relay_update_ret_t update_relay_state
    (struct relay_module_t *r, uint16_t act, uint16_t tgt)
 {
-    dprintf("rs act %u tgt %u h %u\n", act, tgt, r->hysteresis);
+    //dprintf("rs act %u tgt %u h %u\n", act, tgt, r->hysteresis);
     
     relay_update_ret_t ret = STATE_UNCHANGED;
     

@@ -100,14 +100,13 @@ void main_task(void *pvParameters)
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
             
-        dprintf("recv val=0x%x room=%u outside=%u\n", recv_temp,
-            GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        //dprintf("recv val=0x%x room=%u outside=%u\n", recv_temp,
+        //    GETUPPER16(recv_temp), GETLOWER16(recv_temp));
         
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
             uint16_t t = GETUPPER16(recv_temp);
             normal_temp = false;
-            dprintf("temperature from adc: %u\n", t);
         }
 
         // Store new temperature in case of user inputs
@@ -115,7 +114,6 @@ void main_task(void *pvParameters)
         {
             set_temp = GETUPPER16(recv_temp);
             normal_temp = false;
-            dprintf("new temperature set: %u\n", set_temp);
         }
         
         if (recv_temp == MAGIC_FORCERELAY_ON ||
