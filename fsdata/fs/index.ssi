@@ -12,7 +12,7 @@
 			var init_form = function()
 			{
 				// Set server time
-				if (!(window.location.href.includes("settime")))
+				if (!(window.location.href.includes("?")))
 				{
 					var newtime = Date.now();
 					newtime = Math.floor(newtime / 1000);
@@ -133,6 +133,8 @@
 					<td><!--#rstate--></td>
 				</tr>
 			</table>
+			<br><br>
+			<h3>Uptime: <!--#uptime--></h3>
 
 		</div>
 	</body>
