@@ -10,6 +10,15 @@
 #include "task.h"
 #include "esp8266.h"
 
+
+/////////////////////////////////////////////////////
+// Wifi AP credentials 
+// Change password to a stronger one!
+
+#define AP_SSID "Thermostat-AP"
+#define AP_PSK  "trustno1"
+
+
 /////////////////////////////////////////////////////
 // GPIO pin numbers
 
