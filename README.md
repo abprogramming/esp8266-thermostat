@@ -1,7 +1,7 @@
 # What's this?
-This is one of the many hardware/embedded software projects I've started building. I've decided to make public this one, since it's almost finished, so some ideas may be useful for others too - and maybe it's also an incentive for me to finish it... :-) Anyways, I use github for version control of my personal projects (in private repos) and maybe I can give back something to the community. 
+This is one of the many hardware/embedded software projects I've started building, the first one using the ESP8266, so it's intended to expolit as many features of this nice MCU. I've decided to make public this one, since it's almost finished, so some ideas may be useful for others too - and maybe it's also an incentive for me to finish it... :-) Anyways, I use github for version control of my personal projects (in private repos) and maybe I can give back something to the community. 
 
-It is one of the most basic DIY projects, which is built by many hobbyists: a thermostat, based on the ESP8266 MCU and [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), a really nice FreeRTOS implementation for this microcrontoller.
+It is one of the most basic DIY projects, which is built by many hobbyists: a thermostat, based on the ESP8266 MCU and [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), a really nice FreeRTOS implementation for this microcontoller.
 
 # Features
 * Two Dallas temperature sensors for inside and outside temperatures.
