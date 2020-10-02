@@ -13,6 +13,9 @@ uint32_t get_uptime();
 
 void set_time(uint32_t ts);
 
+// Convert timestamp to human-readable form
+void ts_to_str(uint32_t ts, char* buf);
+
 // Starts a high-priority clock task 
 BaseType_t start_clock(void);
 

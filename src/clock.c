@@ -1,12 +1,19 @@
 #include "common.h"
 #include "clock.h"
+#include <time.h>
 #include <semphr.h>
-
 
 static uint32_t UPTIME;
 static uint32_t TIMESTAMP;
 static SemaphoreHandle_t sem_ts;
 static bool clock_started = false;
+
+void ts_to_str(uint32_t ts, char* buf)
+{
+    time_t unixtime = ts;
+    struct tm stm = *gmtime(&unixtime);
+    strftime(buf, 9, "%H:%M:%S", &stm);
+}
 
 uint32_t get_time()
 {
@@ -77,7 +84,6 @@ static void clock_task(void *pvParameters)
             {
                 UPTIME++;
                 TIMESTAMP++;
-                printf("TS %u\n", TIMESTAMP);
                 xSemaphoreGive(sem_ts);
             }
         }
