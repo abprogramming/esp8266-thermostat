@@ -3,14 +3,11 @@
 #include <stdio.h>
 #include <httpd/httpd.h>
 #include <dhcpserver.h>
-#include <semphr.h>
 
 #include "templog.h"
+#include "clock.h"
 #include "server.h"
 
-
-#define AP_SSID "Thermostat-AP"
-#define AP_PSK  "trustno1"
 
 static TaskHandle_t main_task_h = NULL;
 
@@ -22,59 +19,9 @@ static uint8_t RFORCEON = 0;
 
 struct log_buffer_t templog;
 
-/////////////////////////////////////////////////////
-// Minimal implementation of a eeal-time clock
-
-static uint32_t TIMESTAMP;
-SemaphoreHandle_t sem_ts;
-
-static uint32_t get_time()
-{
-    uint32_t out = 0;
-    if (sem_ts != NULL)
-    {
-        if (xSemaphoreTake(sem_ts, (TickType_t) 0 ))
-        {
-            out = TIMESTAMP;
-            xSemaphoreGive(sem_ts);
-        }
-    }
-    return out;
-}
-
-static void set_time(uint32_t ts)
-{
-    if (sem_ts != NULL)
-    {
-        if (xSemaphoreTake(sem_ts, (TickType_t) 0 ))
-        {
-            TIMESTAMP = ts;
-            xSemaphoreGive(sem_ts);
-        }
-    }
-}
-
-static void clock_task(void *pvParameters)
-{
-    sem_ts = xSemaphoreCreateMutex();
-    for (;;)
-    {
-        if (sem_ts != NULL)
-        {
-            if (xSemaphoreTake(sem_ts, (TickType_t) 0 ))
-            {
-                TIMESTAMP++;
-                printf("TS %u\n", TIMESTAMP);
-                xSemaphoreGive(sem_ts);
-            }
-        }
-        DELAY(1000);
-    }
-}
-
 
 /////////////////////////////////////////////////////
-// Manage log
+// Manage templog
 
 static void log_settemp()
 {
@@ -107,7 +54,8 @@ enum {
     TEMP_OUTS,
     RELAY_STATE,
     RELAY_FORCEON,
-    LOG_TSTAMP
+    LOG_TSTAMP,
+    SERVER_UPTIME
 };
 
 static void notify_settemp()
@@ -131,7 +79,7 @@ static void notify_forceon()
 int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
 {
     // This is for the log entries
-    if (iIndex > LOG_TSTAMP)
+    if (iIndex > SERVER_UPTIME)
     {
         struct log_entry_t e = log_buffer_getnext(&templog);
         snprintf(pcInsert, iInsertLen, "%u | %s", e.ts, e.v);
@@ -171,6 +119,9 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
             break;
         case LOG_TSTAMP:
             snprintf(pcInsert, iInsertLen, "%u", get_time());
+            break;
+        case SERVER_UPTIME:
+            snprintf(pcInsert, iInsertLen, "%u", get_uptime());
             break;
         default:
             snprintf(pcInsert, iInsertLen, "N/A");
@@ -252,6 +203,7 @@ void httpd_task(void *pvParameters)
         "rstate",
         "forceon",
         "tstamp",
+        "uptime",
         "log1",
         "log2",
         "log3",
@@ -300,7 +252,7 @@ void httpd_task(void *pvParameters)
 
 TaskHandle_t server_init(TaskHandle_t _main_task_h)
 {
-    set_time(0);
+    start_clock();
     templog = log_buffer_init(8 * 60);
     
     main_task_h = _main_task_h;
@@ -331,6 +283,6 @@ TaskHandle_t server_init(TaskHandle_t _main_task_h)
     
     TaskHandle_t task_h = NULL;
     xTaskCreate(&httpd_task, "HTTP Daemon", 1024, NULL, PRIO_DEFAULT, &task_h);
-    xTaskCreate(&clock_task, "Clock", 1024, NULL, PRIO_HIGH, NULL);
+    
     return task_h;
 }
