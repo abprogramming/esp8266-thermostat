@@ -101,7 +101,7 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
     {
         struct log_entry_t e = log_buffer_getnext(&templog);
         ts_to_str(e.ts, buf);
-        snprintf(pcInsert, iInsertLen, "%s %s", buf, e.v);
+        snprintf(pcInsert, iInsertLen, "%s <b>%s</b>", buf, e.v);
         return (strlen(pcInsert));
     }
     
