@@ -24,7 +24,7 @@ struct log_buffer_t templog;
 // Manage templog
 
 static uint32_t last_temp_time = 0;
-static const uint32_t temp_log_frequency = 10;//10 * 60;
+static const uint32_t temp_log_frequency = 10 * 60;
 
 enum logtype {
     LOG_TEMP,
