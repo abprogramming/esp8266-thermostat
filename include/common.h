@@ -12,7 +12,7 @@
 
 
 /////////////////////////////////////////////////////
-// Wifi AP credentials 
+// Wifi AP credentials
 // Change password to a stronger one!
 
 #define AP_SSID "Thermostat-AP"
@@ -24,10 +24,10 @@
 
 // DS18B20 temperature sensors
 // (1-wire protocol)
-#define PIN_DS18B20_ROOM    0 
+#define PIN_DS18B20_ROOM    0
 #define PIN_DS18B20_OUTS    2
 
-// 75HC595 Shift register for 
+// 75HC595 Shift register for
 // seven-segment display control
 #define PIN_74HC595_SER    16
 #define PIN_74HC595_OE     14
@@ -48,8 +48,10 @@
 #define TEMP_SET_MAX (float) 28.0
 
 // Valid temperature limits
-#define TEMP_MIN_VALID (float) -30.0
-#define TEMP_MAX_VALID (float)  40.0
+#define ROOM_TEMP_MIN_VALID (float)  10.0
+#define ROOM_TEMP_MAX_VALID (float)  35.0
+#define OUTS_TEMP_MIN_VALID (float) -30.0
+#define OUTS_TEMP_MAX_VALID (float)  40.0
 
 // Set temperature after boot
 #define TEMP_INITIAL (float) 21.5
@@ -146,6 +148,6 @@
     printf ("%10u %s | " fmt, \
     (uint32_t) xTaskGetTickCount * portTICK_PERIOD_MS, \
     pcTaskGetName(NULL), ##__VA_ARGS__);
-    
-    
+
+
 #endif
