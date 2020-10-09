@@ -9,7 +9,7 @@
 struct log_entry_t
 {
     uint32_t ts;
-    char v[12];
+    char v[28];
 };
 
 struct log_buffer_t
