@@ -6,25 +6,26 @@
 
 /**
  * Detect DS18B20 sensors, get
- * temperature readings and transmit 
+ * temperature readings and transmit
  * it to main task.
- * 
+ *
  * I've used a TO92 packaged one as
- * room temperature sensor and 
+ * room temperature sensor and
  * a waterproof version for the outside.
- * Although they could be connected on a 
+ * Although they could be connected on a
  * single GPIO pin, I am using separate ones
  * to avoid hardcoded serial numbers.
- * 
+ *
  * However I've kept specific parts of the
  * code which would allow to have two (or more)
  * of them on oone GPIO pin.
  */
 
-static void validate_temperature(float *t)
+static void validate_temperature
+    (float *t, float min, float max)
 {
-    if (*t > TEMP_MAX_VALID ||
-        *t < TEMP_MIN_VALID)
+    if (*t > max ||
+        *t < min)
     {
         *t = TEMP_ERR;
     }
@@ -53,8 +54,6 @@ static float get_temperature_reading(uint8_t pin)
     temp = ds18b20_read_temperature(pin, *addrs);
     //dprintf("%f C from GPIO %d\n", temp, pin);
 
-    // Ensure that the reading is between the pre-defined constraints
-    validate_temperature(&temp);
     return temp;
 }
 
@@ -88,8 +87,20 @@ void read_temp_task(void *pvParameters)
         float temps[2];
         temps[0] = get_temperature_reading(PIN_DS18B20_ROOM);
         temps[1] = get_temperature_reading(PIN_DS18B20_OUTS);
+
+        // Ensure that the readings are between the pre-defined constraints.
+        // If the outside temperature has any errors we can proceed.
+        // If the room temperature has errors the reading is not sent to main task
+        validate_temperature(&temps[0], ROOM_TEMP_MIN_VALID, ROOM_TEMP_MAX_VALID);
+        validate_temperature(&temps[1], OUTS_TEMP_MIN_VALID, OUTS_TEMP_MAX_VALID);
+
+        if (temps[0] == TEMP_ERR)
+        {
+            continue;
+        }
+
         uint32_t notify_val = pack_floats(temps);
-        
+
         // This should NEVER happen, but we better check...
         if (GETLOWER16(notify_val) != MAGIC_SET_TEMP &&
             GETLOWER16(notify_val) != MAGIC_ACC_TEMP)
