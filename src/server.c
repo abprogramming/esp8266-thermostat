@@ -14,6 +14,9 @@ static TaskHandle_t main_task_h = NULL;
 static float TEMP_TGT_V  = TEMP_INITIAL;
 static float TEMP_ROOM_V = 655;
 static float TEMP_OUTS_V = 655;
+static float LAST_ROOM_TEMP = 0;
+static float LAST_OUTS_TEMP = 0;
+static float LAST_RELAY_TEMP = 0;
 static uint8_t RSTATE = 0;
 static uint8_t RFORCEON = 0;
 
@@ -34,9 +37,9 @@ enum logtype {
 
 static void write_log(enum logtype t)
 {
-    char v[12];
-    memset((void*) v, 0, 12);
-    
+    char v[28];
+    memset((void*) v, 0, 28);
+
     // Not every temp. reading should be stored...
     uint32_t ut = 0;
     if (t == LOG_TEMP)
@@ -47,19 +50,26 @@ static void write_log(enum logtype t)
         {
             return;
         }
+        if (TEMP_ROOM_V == LAST_ROOM_TEMP &&
+            TEMP_OUTS_V == LAST_OUTS_TEMP)
+        {
+            return;
+        }
     }
-    
+
     switch (t)
     {
         case LOG_TEMP:
-            snprintf(v, 12, "R:%0.1f O:%0.1f", TEMP_ROOM_V, TEMP_OUTS_V);
+            snprintf(v, 28, "R:%0.1f O:%0.1f", TEMP_ROOM_V, TEMP_OUTS_V);
             last_temp_time = ut;
+            LAST_ROOM_TEMP = TEMP_ROOM_V;
+            LAST_OUTS_TEMP = TEMP_OUTS_V;
             break;
         case LOG_RELAY:
-            snprintf(v, 12, "RELAY %s", RSTATE ? "On" : "Off");
+            snprintf(v, 28, "RELAY %s (%0.1f)", RSTATE ? "On" : "Off", LAST_RELAY_TEMP);
             break;
         case LOG_SETTEMP:
-            snprintf(v, 12, "SET %0.1f", TEMP_TGT_V);
+            snprintf(v, 28, "SET %0.1f", TEMP_TGT_V);
             break;
         default:
             return;
@@ -67,7 +77,7 @@ static void write_log(enum logtype t)
 
     struct log_entry_t e;
     e.ts = get_time();
-    strncpy(e.v, v, 12);
+    strncpy(e.v, v, 28);
     log_buffer_push(&templog, e);
 }
 
@@ -81,7 +91,7 @@ static void notify_settemp()
     notify_val <<= 16;
     notify_val  += MAGIC_ACC_TEMP;
     xTaskNotify(main_task_h, notify_val,
-            (eNotifyAction) eSetValueWithOverwrite);   
+            (eNotifyAction) eSetValueWithOverwrite);
 }
 
 static void notify_forceon()
@@ -89,22 +99,22 @@ static void notify_forceon()
     uint32_t notify_val =
         (RFORCEON ? MAGIC_FORCERELAY_ON : MAGIC_FORCERELAY_OFF);
     xTaskNotify(main_task_h, notify_val,
-            (eNotifyAction) eSetValueWithOverwrite);   
+            (eNotifyAction) eSetValueWithOverwrite);
 }
 
 int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
 {
      char buf[72];
-    
+
     // This is for the log entries
     if (iIndex > SERVER_UPTIME)
     {
         struct log_entry_t e = log_buffer_getnext(&templog);
         ts_to_str(e.ts, buf);
-        snprintf(pcInsert, iInsertLen, "%s <b>%s</b>", buf, e.v);
+        snprintf(pcInsert, iInsertLen, "%s %s", buf, e.v);
         return (strlen(pcInsert));
     }
-    
+
     switch (iIndex)
     {
         case TEMP_TGT:
@@ -138,7 +148,7 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
             break;
         case LOG_TSTAMP:
             ts_to_str(get_time(), buf);
-            snprintf(pcInsert, iInsertLen, "%s", buf); 
+            snprintf(pcInsert, iInsertLen, "%s", buf);
             break;
         case SERVER_UPTIME:
             snprintf(pcInsert, iInsertLen, "%u", get_uptime());
@@ -203,6 +213,12 @@ const char *settime_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
     return "/index.ssi";
 }
 
+static float roundf(float v)
+{
+    float f = (int) (v * 10);
+    return (float) f / 10;
+}
+
 static void httpd_task(void *pvParameters)
 {
     tCGI pCGIs[] =
@@ -224,21 +240,23 @@ static void httpd_task(void *pvParameters)
     {
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
-            
-        if (recv_temp == MAGIC_RELAY_OFF)
+
+        if (GETLOWER16(recv_temp) == MAGIC_RELAY_OFF)
         {
             RSTATE = 0;
+            LAST_RELAY_TEMP = ((float) GETUPPER16(recv_temp)) / 100;
             write_log(LOG_RELAY);
         }
-        else if (recv_temp == MAGIC_RELAY_ON)
+        else if (GETLOWER16(recv_temp) == MAGIC_RELAY_ON)
         {
             RSTATE = 1;
+            LAST_RELAY_TEMP = ((float) GETUPPER16(recv_temp)) / 100;
             write_log(LOG_RELAY);
         }
-        else 
+        else
         {
-            TEMP_ROOM_V = ((float) GETUPPER16(recv_temp)) / 100;
-            TEMP_OUTS_V = ((float) GETLOWER16(recv_temp)) / 100;
+            TEMP_ROOM_V = roundf(((float) GETUPPER16(recv_temp)) / 100);
+            TEMP_OUTS_V = roundf(((float) GETLOWER16(recv_temp)) / 100);
             write_log(LOG_TEMP);
         }
     }
@@ -252,16 +270,16 @@ TaskHandle_t server_init(TaskHandle_t _main_task_h)
 {
     start_clock();
     templog = log_buffer_init(100);
-    
+
     main_task_h = _main_task_h;
     sdk_wifi_set_opmode(SOFTAP_MODE);
-    
+
     struct ip_info ap_ip;
     IP4_ADDR(&ap_ip.ip, 10, 1, 1, 1);
     IP4_ADDR(&ap_ip.gw, 0, 0, 0, 0);
     IP4_ADDR(&ap_ip.netmask, 255, 0, 0, 0);
     sdk_wifi_set_ip_info(1, &ap_ip);
-        
+
     struct sdk_softap_config ap_config =
     {
         .ssid            = AP_SSID,
@@ -274,13 +292,13 @@ TaskHandle_t server_init(TaskHandle_t _main_task_h)
         .beacon_interval = 100,
     };
     sdk_wifi_softap_set_config(&ap_config);
-    
+
     ip_addr_t first_client_ip;
     IP4_ADDR(&first_client_ip, 10, 1, 1, 2);
     dhcpserver_start(&first_client_ip, 4);
-    
+
     TaskHandle_t task_h = NULL;
     xTaskCreate(&httpd_task, "HTTP Daemon", 1024, NULL, PRIO_DEFAULT, &task_h);
-    
+
     return task_h;
 }

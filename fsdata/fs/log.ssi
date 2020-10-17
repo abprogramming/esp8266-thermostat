@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no">
 		<link rel="stylesheet" type="text/css" href="css/siimple.min.css">
 		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="stylesheet" href="chartist/chartist.min.css">
 		<link rel="shortcut icon" href="img/favicon.png">
 		<title>Thermostat Control Center</title>
 	</head>
@@ -16,17 +17,11 @@
 		</ul>
 
 		<div class="grid main">
-			<h1>System time</h1>
-			
-			<table class="table table-striped">
-				<tr>
-					<td><b>Current time:</b></td>
-					<td id="servertime"><!--#tstamp--></td>
-				</tr>
-			</table>
-
+			<h1>Current server time</h1>
+			<h5 id="servertime"><!--#tstamp--></h5>
 
 			<h1>Thermostat Log</h1>
+			<div class="ct-chart ct-perfect-fourth"></div>
 			<table class="table table-striped">
 				<tr><td><!--#log1--></td></tr><tr><td><!--#log2--></td></tr><tr><td><!--#log3--></td></tr><tr><td><!--#log4--></td></tr><tr><td><!--#log5--></td></tr>
 				<tr><td><!--#log6--></td></tr><tr><td><!--#log7--></td></tr><tr><td><!--#log8--></td></tr><tr><td><!--#log9--></td></tr><tr><td><!--#log10--></td></tr>
@@ -50,7 +45,35 @@
 				<tr><td><!--#log96--></td></tr><tr><td><!--#log97--></td></tr><tr><td><!--#log98--></td></tr><tr><td><!--#log99--></td></tr><tr><td><!--#log100--></td></tr>
 			</table>
 
-		</div>
+		</div> 
+		
+		<script src="chartist/chartist.min.js"></script>
+		<script>
+			var data = document.getElementsByTagName("TD");
+			var labels = [];
+			var series = [[]];
+			for (d of data) {
+				var a = d.innerHTML.split('-->');
+				if (a.length < 2)
+					continue;
+				var b = a[1].split(' ');
+				if (b.length < 2)
+					continue;
+				var time = b[0];
+				if (time == "00:00:00")
+					continue;
+				var c = b[1].split(':');
+				var room = c[1];
+				labels.unshift(time);
+				series[0].unshift(room);
+			}		
+			var chartdata = {
+			  labels: labels,
+			  series: series
+			};
+			new Chartist.Line('.ct-chart', chartdata);
+		</script>
+		
 	</body>
 </html>
 
