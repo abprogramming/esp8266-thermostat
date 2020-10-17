@@ -20,6 +20,15 @@
 
 
 /////////////////////////////////////////////////////
+// Set to 1 if the target hardware has the
+// 7-segment display (and input button) attached.
+// If set to 0, only the WiFi interface will be
+// available for user input/output
+
+#define HAS_DISPLAY 0
+
+
+/////////////////////////////////////////////////////
 // GPIO pin numbers
 
 // DS18B20 temperature sensors
