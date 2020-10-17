@@ -12,7 +12,7 @@ void ts_to_str(uint32_t ts, char* buf)
 {
     time_t unixtime = ts;
     struct tm stm = *gmtime(&unixtime);
-    strftime(buf, 9, "%H:%M:%S", &stm);
+    strftime(buf, 9, "%H:%M", &stm);
 }
 
 uint32_t get_time()
@@ -21,7 +21,7 @@ uint32_t get_time()
     {
         return 0;
     }
-    
+
     uint32_t out = 0;
     if (sem_ts != NULL)
     {
@@ -40,7 +40,7 @@ uint32_t get_uptime()
     {
         return 0;
     }
-    
+
     uint32_t out = 0;
     if (sem_ts != NULL)
     {
@@ -59,7 +59,7 @@ void set_time(uint32_t ts)
     {
         return;
     }
-        
+
     if (sem_ts != NULL)
     {
         if (xSemaphoreTake(sem_ts, (TickType_t) 0 ))
@@ -97,7 +97,7 @@ BaseType_t start_clock()
     TIMESTAMP = 0;
     BaseType_t r = xTaskCreate
         (&clock_task, "Clock", 256, NULL, PRIO_HIGH, NULL);
-       
+
     if (r == pdPASS)
     {
         clock_started = true;

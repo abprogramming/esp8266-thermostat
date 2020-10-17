@@ -10,7 +10,7 @@
 		<title>Thermostat Control Center</title>
 	</head>
 	<body>
-		
+
 		<ul class="navbar">
 			<li><a href="/">Home</a></li>
 			<li><a class="active" href="log">Log</a></li>
@@ -45,8 +45,8 @@
 				<tr><td><!--#log96--></td></tr><tr><td><!--#log97--></td></tr><tr><td><!--#log98--></td></tr><tr><td><!--#log99--></td></tr><tr><td><!--#log100--></td></tr>
 			</table>
 
-		</div> 
-		
+		</div>
+
 		<script src="chartist/chartist.min.js"></script>
 		<script>
 			var data = document.getElementsByTagName("TD");
@@ -60,20 +60,20 @@
 				if (b.length < 2)
 					continue;
 				var time = b[0];
-				if (time == "00:00:00")
+				if (time == "00:00")
 					continue;
 				var c = b[1].split(':');
 				var room = c[1];
 				labels.unshift(time);
 				series[0].unshift(room);
-			}		
+			}
 			var chartdata = {
 			  labels: labels,
 			  series: series
 			};
 			new Chartist.Line('.ct-chart', chartdata);
 		</script>
-		
+
 	</body>
 </html>
 
