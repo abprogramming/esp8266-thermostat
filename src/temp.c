@@ -8,17 +8,6 @@
  * Detect DS18B20 sensors, get
  * temperature readings and transmit
  * it to main task.
- *
- * I've used a TO92 packaged one as
- * room temperature sensor and
- * a waterproof version for the outside.
- * Although they could be connected on a
- * single GPIO pin, I am using separate ones
- * to avoid hardcoded serial numbers.
- *
- * However I've kept specific parts of the
- * code which would allow to have two (or more)
- * of them on oone GPIO pin.
  */
 
 static void validate_temperature
@@ -57,49 +46,29 @@ static float get_temperature_reading(uint8_t pin)
     return temp;
 }
 
-// This function scales temperatures to convert
-// then to integers and then packs the two
-// separate readings to a single 32-bit integer
-// to be sent as an RTOS task notification value.
-// The higher 16 bits will hold the inside temp.
-
-inline static uint32_t pack_floats(float t[])
-{
-    uint32_t neg = 0;
-    uint32_t t0 = FLT2UINT32(t[0]);
-    // Outside temp. can be negative
-    if (t[1] < 0)
-    {
-        t[1] = fabs(t[1]);
-        neg = TEMP_NEG;
-    }
-    uint32_t t1 = FLT2UINT32(t[1]) + neg;
-    t0 <<= 16;
-    return t0 + t1;
-}
-
 void read_temp_task(void *pvParameters)
 {
     TaskHandle_t main_task_h = (TaskHandle_t) pvParameters;
 
     for (;;)
     {
-        float temps[2];
-        temps[0] = get_temperature_reading(PIN_DS18B20_ROOM);
-        temps[1] = get_temperature_reading(PIN_DS18B20_OUTS);
+        float temp = get_temperature_reading(PIN_DS18B20);
 
         // Ensure that the readings are between the pre-defined constraints.
         // If the outside temperature has any errors we can proceed.
         // If the room temperature has errors the reading is not sent to main task
-        validate_temperature(&temps[0], ROOM_TEMP_MIN_VALID, ROOM_TEMP_MAX_VALID);
-        validate_temperature(&temps[1], OUTS_TEMP_MIN_VALID, OUTS_TEMP_MAX_VALID);
 
-        if (temps[0] == TEMP_ERR)
+#if IS_CLIENT
+        validate_temperature(&temp, OUTS_TEMP_MIN_VALID, OUTS_TEMP_MAX_VALID);
+        if (temp == TEMP_ERR)
         {
             continue;
         }
+#else
+        validate_temperature(&temp, ROOM_TEMP_MIN_VALID, ROOM_TEMP_MAX_VALID);
+#endif // IS_CLIENT
 
-        uint32_t notify_val = pack_floats(temps);
+        uint32_t notify_val = FLT2UINT32(temp);
 
         // This should NEVER happen, but we better check...
         if (GETLOWER16(notify_val) != MAGIC_SET_TEMP &&

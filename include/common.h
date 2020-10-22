@@ -33,8 +33,7 @@
 
 // DS18B20 temperature sensors
 // (1-wire protocol)
-#define PIN_DS18B20_ROOM    0
-#define PIN_DS18B20_OUTS    2
+#define PIN_DS18B20         0
 
 // 75HC595 Shift register for
 // seven-segment display control
