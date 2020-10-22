@@ -9,22 +9,31 @@
 #include "server.h"
 #include "cgi-ssi.h"
 
+
 static TaskHandle_t main_task_h = NULL;
+struct log_buffer_t templog;
 
 static float TEMP_TGT_V  = TEMP_INITIAL;
+
 static float TEMP_ROOM_V = 655;
 static float TEMP_OUTS_V = 655;
+
 static float LAST_ROOM_TEMP = 0;
 static float LAST_OUTS_TEMP = 0;
+
+// This indicates the actual value upon
+// which the decision to change the relay
+// state was made by the main task
 static float LAST_RELAY_TEMP = 0;
+
 static uint8_t RSTATE = 0;
 static uint8_t RFORCEON = 0;
 
-struct log_buffer_t templog;
-
 
 /////////////////////////////////////////////////////
-// Manage templog
+// Manage temperature log
+// (With additional information, like temperature
+//  set events and relay state changes)
 
 static uint32_t last_temp_time = 0;
 static const uint32_t temp_log_frequency = 10 * 60;
@@ -65,12 +74,15 @@ static void write_log(enum logtype t)
             LAST_ROOM_TEMP = TEMP_ROOM_V;
             LAST_OUTS_TEMP = TEMP_OUTS_V;
             break;
+
         case LOG_RELAY:
             snprintf(v, 28, "RELAY %s (%0.1f)", RSTATE ? "On" : "Off", LAST_RELAY_TEMP);
             break;
+
         case LOG_SETTEMP:
             snprintf(v, 28, "SET %0.1f", TEMP_TGT_V);
             break;
+
         default:
             return;
     }
@@ -81,8 +93,10 @@ static void write_log(enum logtype t)
     log_buffer_push(&templog, e);
 }
 
+
 /////////////////////////////////////////////////////
-// CGI/SSI Handlers
+// Functions for sending FreeRTOS notifications
+// to the main task about user decisions
 
 static void notify_settemp()
 {
@@ -102,12 +116,17 @@ static void notify_forceon()
             (eNotifyAction) eSetValueWithOverwrite);
 }
 
+
+/////////////////////////////////////////////////////
+// Rules for filling the dynamic parts (server side-includes)
+// of the hosted web pages.
+
 int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
 {
      char buf[72];
 
     // This is for the log entries
-    if (iIndex > SERVER_UPTIME)
+    if (iIndex >= LOG_MIN)
     {
         struct log_entry_t e = log_buffer_getnext(&templog);
         ts_to_str(e.ts, buf);
@@ -120,6 +139,7 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
         case TEMP_TGT:
             snprintf(pcInsert, iInsertLen, "%0.1f", TEMP_TGT_V);
             break;
+
         case TEMP_ROOM:
             if (TEMP_ROOM_V >= 100)
             {
@@ -130,6 +150,7 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
                 snprintf(pcInsert, iInsertLen, "%0.1f", TEMP_ROOM_V);
             }
             break;
+
         case TEMP_OUTS:
             if (TEMP_OUTS_V >= 100)
             {
@@ -140,19 +161,24 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
                 snprintf(pcInsert, iInsertLen, "%0.1f", TEMP_OUTS_V);
             }
             break;
+
         case RELAY_STATE:
             snprintf(pcInsert, iInsertLen, "%s", RSTATE ? "On" : "Off");
             break;
+
         case RELAY_FORCEON:
             snprintf(pcInsert, iInsertLen, "%u", RFORCEON);
             break;
+
         case LOG_TSTAMP:
             ts_to_str(get_time(), buf);
             snprintf(pcInsert, iInsertLen, "%s", buf);
             break;
+
         case SERVER_UPTIME:
             snprintf(pcInsert, iInsertLen, "%u", get_uptime());
             break;
+
         default:
             snprintf(pcInsert, iInsertLen, "N/A");
             break;
@@ -162,6 +188,11 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
     return (strlen(pcInsert));
 }
 
+
+/////////////////////////////////////////////////////
+// Handler functions for the GET HTTP requests
+
+// Set new target temperature
 const char *settemp_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
     for (int i = 0; i < iNumParams; i++)
@@ -176,6 +207,7 @@ const char *settemp_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
     return "/index.ssi";
 }
 
+// Toggle force relay on function
 const char *setrelay_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
     for (int i = 0; i < iNumParams; i++)
@@ -193,12 +225,14 @@ const char *setrelay_cgi_handler(int iIndex, int iNumParams, char *pcParam[], ch
     return "/index.ssi";
 }
 
+// Request for the log page
 const char *logpage_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
     log_buffer_reset(&templog);
     return "/log.ssi";
 }
 
+// Set system time (software real time clock)
 const char *settime_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
     for (int i = 0; i < iNumParams; i++)
@@ -213,12 +247,29 @@ const char *settime_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
     return "/index.ssi";
 }
 
+// Get outside temperature from another
+// device running the client firmware
+const char *outtemp_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
+{
+    for (int i = 0; i < iNumParams; i++)
+    {
+        if (strcmp(pcParam[i], "val") == 0)
+        {
+            TEMP_OUTS_V = atof(pcValue[i]);
+        }
+    }
+    return "/index.ssi";
+}
+
+
 static float roundf(float v)
 {
     float f = (int) (v * 10);
     return (float) f / 10;
 }
 
+
+// Register the main HTTP Daemon task and CGI request addresses
 static void httpd_task(void *pvParameters)
 {
     tCGI pCGIs[] =
@@ -227,6 +278,7 @@ static void httpd_task(void *pvParameters)
         { "/setrelay", (tCGIHandler) setrelay_cgi_handler },
         { "/log",      (tCGIHandler) logpage_cgi_handler  },
         { "/settime",  (tCGIHandler) settime_cgi_handler  },
+        { "/outtemp",  (tCGIHandler) outtemp_cgi_handler  },
     };
 
     // register handlers and start the server
@@ -236,6 +288,10 @@ static void httpd_task(void *pvParameters)
     httpd_init();
 
     uint32_t recv_temp;
+
+    // Main loop: wait for notification from the main task
+    // and fill the local copies of the received values
+    // to be available for SSI handlers
     for (;;)
     {
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
@@ -255,8 +311,9 @@ static void httpd_task(void *pvParameters)
         }
         else
         {
-            TEMP_ROOM_V = roundf(((float) GETUPPER16(recv_temp)) / 100);
-            TEMP_OUTS_V = roundf(((float) GETLOWER16(recv_temp)) / 100);
+            TEMP_ROOM_V = roundf(((float) GETLOWER16(recv_temp)) / 100);
+            // Deprecated
+            //TEMP_OUTS_V = roundf(((float) GETLOWER16(recv_temp)) / 100);
             write_log(LOG_TEMP);
         }
     }
@@ -264,7 +321,9 @@ static void httpd_task(void *pvParameters)
 
 
 /////////////////////////////////////////////////////
-// Server initialization
+// Server initialization:
+// set up WiFi SoftAP and DHCP server,
+// then start the HTTP Daemon task
 
 TaskHandle_t server_init(TaskHandle_t _main_task_h)
 {
