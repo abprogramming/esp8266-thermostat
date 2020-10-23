@@ -154,11 +154,11 @@ void main_task(void *pvParameters)
             }
             if (ret == STATE_CHANGED)
             {
-				uint32_t notify_val = 0;
-				notify_val   = GETUPPER16(recv_temp);
+                uint32_t notify_val = 0;
+                notify_val   = GETUPPER16(recv_temp);
                 if (force_on)
-					notify_val = MAGIC_FORCERELAY_ON;
-				notify_val <<= 16;
+                    notify_val = MAGIC_FORCERELAY_ON;
+                notify_val <<= 16;
                 uint32_t magic =
                     (relay.state == RELAY_OFF ?
                                     MAGIC_RELAY_OFF :

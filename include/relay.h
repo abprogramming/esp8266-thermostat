@@ -20,7 +20,7 @@ typedef enum
 
 struct relay_module_t
 {
-    uint8_t	pin;
+    uint8_t    pin;
     relay_state_t state;
     uint16_t hysteresis;
 };

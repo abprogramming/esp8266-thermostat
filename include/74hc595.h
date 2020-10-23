@@ -10,10 +10,10 @@
  
 struct _74hc595_pins_t
 {
-    uint8_t	pin_ser;
-    uint8_t	pin_oe;
-    uint8_t	pin_rclk;
-    uint8_t	pin_srclk;  
+    uint8_t    pin_ser;
+    uint8_t    pin_oe;
+    uint8_t    pin_rclk;
+    uint8_t    pin_srclk;  
 };
 
 struct _74hc595_t
