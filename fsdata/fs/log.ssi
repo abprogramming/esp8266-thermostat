@@ -49,28 +49,64 @@
 
 		<script src="chartist/chartist.min.js"></script>
 		<script>
-			var data = document.getElementsByTagName("TD");
+			var ht = document.getElementsByTagName("TD");
+			var data = Array.from(ht);
+			console.log(data);
+			data.reverse();
+			
 			var labels = [];
-			var series = [[]];
+			var series = [[],[]];
+			
+			var h_last = 25;
+			
 			for (d of data) {
+				
 				var a = d.innerHTML.split('-->');
 				if (a.length < 2)
 					continue;
+				
+				// sample:
+				// 14:00 R:26.0 O:14.0
+					
 				var b = a[1].split(' ');
 				if (b.length < 2)
 					continue;
+					
 				var time = b[0];
 				if (time == "00:00")
 					continue;
+				var t = time.split(':');
+				var h = t[0];
+				if (h == h_last)
+				{
+					h = " ";
+				}
+				else
+				{
+					h_last = h;
+				}
+					
 				var c = b[1].split(':');
 				var room = c[1];
-				labels.unshift(time);
-				series[0].unshift(room);
+				
+				var d = b[2].split(':');
+				var outs = d[1];
+							
+				if (room < 50) {
+					series[0].push(room);
+					labels.push(h);
+					if (outs < 50)
+					{
+						series[1].push(outs);
+					}
+				}
 			}
+			
 			var chartdata = {
 			  labels: labels,
 			  series: series
 			};
+			
 			new Chartist.Line('.ct-chart', chartdata);
 		</script>
 
