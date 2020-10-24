@@ -90,7 +90,7 @@
 			<input type="hidden" value="<!--#forceon-->" id="relayforceon">
 			<form method="get" action="setrelay"> 
 				<div class="cover" align="center" style="margin-bottom: 50px">
-					Force relay ON
+					Force heating OFF
 					<div class="onoffswitch">
 						<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="forceon" onchange="setTimeout(() => { submit_relay() }, 2000); ">
 						<label class="onoffswitch-label" for="forceon">
@@ -100,19 +100,6 @@
 					</div>
 				</div>
 			</form>
-			
-			<!---
-			<div class="cover" align="center">
-				Force relay OFF
-				<div class="onoffswitch">
-					<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="forceoff" onclick="void();">
-					<label class="onoffswitch-label" for="forceoff">
-						<span class="onoffswitch-inner"></span>
-						<span class="onoffswitch-switch"></span>
-					</label>
-				</div>
-			</div>
-			--->
 
 			<h1>Thermostat Status</h1>
 			<table class="table table-striped">

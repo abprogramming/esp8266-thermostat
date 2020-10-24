@@ -35,6 +35,9 @@
 // (1-wire protocol)
 #define PIN_DS18B20         0
 
+// Built-in LED
+#define PIN_LED		        2
+
 // 75HC595 Shift register for
 // seven-segment display control
 #define PIN_74HC595_SER    16
@@ -62,7 +65,7 @@
 #define OUTS_TEMP_MAX_VALID (float)  40.0
 
 // Set temperature after boot
-#define TEMP_INITIAL (float) 21.5
+#define TEMP_INITIAL (float) 23.0
 
 // Hysteresis value after boot
 #define HYST_INITIAL (float) 0.5

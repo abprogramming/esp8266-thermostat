@@ -87,7 +87,12 @@ void check_task_creation_result(BaseType_t r, char *name)
 
 void main_task(void *pvParameters)
 {
+	// Initialize feedback LED for
+	// forced off mode
     bool force_on = false;
+    gpio_enable(PIN_LED, GPIO_OUTPUT);
+    gpio_write (PIN_LED,  1);
+    
     uint32_t recv_temp;
     uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
 
@@ -105,12 +110,11 @@ void main_task(void *pvParameters)
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
 
-        //dprintf("recv val=0x%x room=%u outside=%u\n", recv_temp,
-        //    GETUPPER16(recv_temp), GETLOWER16(recv_temp));
+        dprintf("recv val=0x%x\n", recv_temp);
 
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
-            uint16_t t = GETUPPER16(recv_temp);
+            //uint16_t t = GETUPPER16(recv_temp);
             normal_temp = false;
         }
 
@@ -143,19 +147,28 @@ void main_task(void *pvParameters)
 
             // Decide if we need to turn on or off the relay
             relay_update_ret_t ret;
+            
+            // Force mode: never turn on the relay 
+            // and feedback this mode by turning the LED on
             if (force_on)
             {
-                ret = update_relay_state(&relay, 1000, 2000);
+                ret = update_relay_state(&relay, 2000, 1000);
+                gpio_write(PIN_LED, 0);
+                
             }
             else
             {
                 ret = update_relay_state
-                    (&relay, GETUPPER16(recv_temp), set_temp);
+                    (&relay, recv_temp, set_temp);
+                gpio_write(PIN_LED, 1);
             }
+            
+            // If the relay state has changed:
+            // notify the server task
             if (ret == STATE_CHANGED)
             {
                 uint32_t notify_val = 0;
-                notify_val   = GETUPPER16(recv_temp);
+                notify_val   = recv_temp;
                 if (force_on)
                     notify_val = MAGIC_FORCERELAY_ON;
                 notify_val <<= 16;
