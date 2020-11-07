@@ -345,7 +345,7 @@ TaskHandle_t server_init(TaskHandle_t _main_task_h)
         .ssid_hidden     = 0,
         .channel         = 3,
         .ssid_len        = strlen(AP_SSID),
-        .authmode        =  AUTH_WPA_WPA2_PSK,
+        .authmode        = AUTH_WPA_WPA2_PSK,
         .password        = AP_PSK,
         .max_connection  = 3,
         .beacon_interval = 100,
