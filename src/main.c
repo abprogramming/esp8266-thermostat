@@ -7,6 +7,7 @@
 # include "input.h"
 #endif
 #include "server.h"
+#include "client.h"
 
 
 /**
@@ -26,22 +27,26 @@
 // Task handles
 static TaskHandle_t main_task_h    = NULL;
 static TaskHandle_t temp_task_h    = NULL;
+
+#if !IS_CLIENT
 static TaskHandle_t httpd_task_h   = NULL;
+#endif
 
 #if HAS_DISPLAY
 static TaskHandle_t display_task_h = NULL;
 static TaskHandle_t input_task_h   = NULL;
 #endif
 
+// Entry point: create tasks
 void user_init(void)
 {
     uart_set_baud(0, BAUDRATE);
 
     BaseType_t res;
-
+    
     // Main flow control
     res = xTaskCreate(&main_task, "main_task",
-            256, NULL, PRIO_DEFAULT, &main_task_h);
+            1024, NULL, PRIO_DEFAULT, &main_task_h);
     check_task_creation_result(res, "main");
 
 
@@ -64,9 +69,26 @@ void user_init(void)
     check_task_creation_result(res, "input control");
 #endif
 
+#if IS_CLIENT
+    // Initalize device as WiFi station and
+    // try to connect to a thermostat server
+    client_init();
+#else
     // Initialize SoftAP and HTTP server
     // the function returns a handle to the task created
     httpd_task_h = server_init(main_task_h);
+#endif
+
+}
+
+// Restart device
+static void restart_device(void)
+{
+    fflush(stdout);
+    uart_flush_txfifo(0);
+    uart_flush_txfifo(1);
+    DELAY(10);
+    sdk_system_restart();
 }
 
 // If any of these critical calls above fails, we should
@@ -77,41 +99,46 @@ void check_task_creation_result(BaseType_t r, char *name)
     {
         dprintf("FATAL ERROR: failed to create %s task, "
                 "restarting system...\n", name);
-        fflush(stdout);
-        uart_flush_txfifo(0);
-        uart_flush_txfifo(1);
-        DELAY(10);
-        sdk_system_restart();
+        restart_device();
     }
 }
 
 void main_task(void *pvParameters)
 {
-	// Initialize feedback LED for
-	// forced off mode
+    // Variables storing actual and target temperature
+    uint32_t recv_temp;
+    
+#if !IS_CLIENT
+    // Target temperature from user
+    uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
+
+    // Initialize feedback LED for
+    // forced off mode
     bool force_on = false;
     gpio_enable(PIN_LED, GPIO_OUTPUT);
-    gpio_write (PIN_LED,  1);
-    
-    uint32_t recv_temp;
-    uint16_t set_temp = (uint16_t) FLT2UINT32(TEMP_INITIAL);
+    gpio_write (PIN_LED,  1);  
 
     // Initialize relay control object
     struct relay_module_t relay = relay_module_create(PIN_RELAY);
+#endif
 
     // Wait some time to be sure everything is ready
-    DELAY(3000);
+    DELAY(5000);
 
     for (;;)
     {
+        // This is true, if the received task notification value
+        // indicates a "normal" temperature from the sensor(s), 
+        // not some special magic/control value
         bool normal_temp = true;
 
         // Get temperature readings and user input values
         xTaskNotifyWait((uint32_t) 0x0, (uint32_t) UINT32_MAX,
             (uint32_t*) &recv_temp, (TickType_t) portMAX_DELAY);
 
-        dprintf("recv val=0x%x\n", recv_temp);
-
+        //dprintf("recv val=0x%x\n", recv_temp);
+        
+#if !IS_CLIENT
         if (GETLOWER16(recv_temp) == MAGIC_SET_TEMP)
         {
             //uint16_t t = GETUPPER16(recv_temp);
@@ -125,6 +152,7 @@ void main_task(void *pvParameters)
             normal_temp = false;
         }
 
+        // Handle forceon input from server module
         if (recv_temp == MAGIC_FORCERELAY_ON ||
             recv_temp == MAGIC_FORCERELAY_OFF)
         {
@@ -132,6 +160,7 @@ void main_task(void *pvParameters)
                 (recv_temp == MAGIC_FORCERELAY_ON ? true : false);
             normal_temp = false;
         }
+#endif
 
 #if HAS_DISPLAY
         // Refresh display
@@ -139,22 +168,41 @@ void main_task(void *pvParameters)
             (eNotifyAction) eSetValueWithOverwrite);
 #endif
 
+        // If the received notification value is
+        // a temperature reading...
         if (normal_temp)
         {
-            // Send temperatures to server module
+            
+#if IS_CLIENT
+            //...if it's a client application,
+            // send it to the server
+            if (tcp_ready())
+            {
+                client_connect(recv_temp);
+                DELAY(60000);
+            }
+            else
+            {
+                dprintf("FATAL ERROR: failed to connect server, "
+                        "restarting system...\n");
+                restart_device();
+            }
+#else
+
+            // ...if a server apllication,
+            // send temperatures to server module
             xTaskNotify(httpd_task_h, recv_temp,
                 (eNotifyAction) eSetValueWithOverwrite);
 
-            // Decide if we need to turn on or off the relay
+            // And decide if we need to turn on or off the relay
             relay_update_ret_t ret;
-            
-            // Force mode: never turn on the relay 
-            // and feedback this mode by turning the LED on
             if (force_on)
             {
+                // Force mode: never turn on the relay
+                // and feedback this mode by turning the LED on
                 ret = update_relay_state(&relay, 2000, 1000);
                 gpio_write(PIN_LED, 0);
-                
+
             }
             else
             {
@@ -162,9 +210,10 @@ void main_task(void *pvParameters)
                     (&relay, recv_temp, set_temp);
                 gpio_write(PIN_LED, 1);
             }
-            
+
             // If the relay state has changed:
-            // notify the server task
+            // notify the server task and send the
+            // temperature which triggered the change
             if (ret == STATE_CHANGED)
             {
                 uint32_t notify_val = 0;
@@ -180,6 +229,7 @@ void main_task(void *pvParameters)
                 xTaskNotify(httpd_task_h, notify_val,
                      (eNotifyAction) eSetValueWithOverwrite);
             }
+#endif
         }
     }
 }

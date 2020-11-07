@@ -65,7 +65,7 @@
 #define OUTS_TEMP_MAX_VALID (float)  40.0
 
 // Set temperature after boot
-#define TEMP_INITIAL (float) 23.0
+#define TEMP_INITIAL (float) 22.0
 
 // Hysteresis value after boot
 #define HYST_INITIAL (float) 0.5
