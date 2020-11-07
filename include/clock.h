@@ -7,9 +7,9 @@
  
 // Returns a UNIX timestamp, must be set with
 // set_time(), until that it equals uptime
-uint32_t get_time();
+uint32_t get_time(void);
 
-uint32_t get_uptime();
+uint32_t get_uptime(void);
 
 void set_time(uint32_t ts);
 

@@ -15,7 +15,7 @@ void ts_to_str(uint32_t ts, char* buf)
     strftime(buf, 9, "%H:%M", &stm);
 }
 
-uint32_t get_time()
+uint32_t get_time(void)
 {
     if (!clock_started)
     {
@@ -34,7 +34,7 @@ uint32_t get_time()
     return out;
 }
 
-uint32_t get_uptime()
+uint32_t get_uptime(void)
 {
     if (!clock_started)
     {
