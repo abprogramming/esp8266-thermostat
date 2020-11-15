@@ -10,6 +10,7 @@ enum {
     RELAY_FORCEON,
     LOG_TSTAMP,
     SERVER_UPTIME,
+    SET_HYST,
     LOG_MIN
 };
 
@@ -24,6 +25,7 @@ const char *pcConfigSSITags[] =
     "forceon",
     "tstamp",
     "uptime",
+    "sethyst",
     "log1","log2","log3","log4","log5",
     "log6","log7","log8","log9","log10",
     "log11","log12","log13","log14","log15",

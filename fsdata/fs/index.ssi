@@ -34,6 +34,22 @@
 						select.options[select.options.length - 1].selected = true;
 					}
 				}
+				i = 1;
+				
+				var hystselect = document.getElementById("hystselect");
+				var hystval = document.getElementById('sethyst').value;
+				hyst = hystval.split(/-->/).pop().trim();
+				for (i = 1; i < 11; i++)
+				{
+					var s = i.toString()
+					hystselect.options[hystselect.options.length] = new Option(s, s);
+					
+					
+					if (i == parseInt(hyst) )
+					{
+						hystselect.options[hystselect.options.length - 1].selected = true;
+					}
+				}
 				
 				var forceon = document.getElementById('relayforceon').value;
 				forceon = forceon.split(/-->/).pop().trim();
@@ -82,8 +98,16 @@
 
 			<form method="get" action="settemp"> 
 				<div class="cover" align="center" style="margin-bottom: 30px">
-					<label class="siimple-label">Set temperature: </label><br>
+					<label class="siimple-label">Set temperature (&deg;C): </label><br>
 					<select class="siimple-select siimple-select--fluid" id="tempselect" name="val" style="width: 50%; height: 35px;" onchange="this.form.submit()">
+					</select>
+				</div>
+			</form>
+			<input type="hidden" value="<!--#sethyst-->" id="sethyst">
+			<form method="get" action="sethyst"> 
+				<div class="cover" align="center" style="margin-bottom: 30px">
+					<label class="siimple-label">Set hysteresis (0.x  &deg;C): </label><br>
+					<select class="siimple-select siimple-select--fluid" id="hystselect" name="val" style="width: 50%; height: 35px;" onchange="this.form.submit()">
 					</select>
 				</div>
 			</form>

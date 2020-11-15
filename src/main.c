@@ -8,6 +8,7 @@
 #endif
 #include "server.h"
 #include "client.h"
+#include "config.h"
 
 
 /**
@@ -120,6 +121,7 @@ void main_task(void *pvParameters)
 
     // Initialize relay control object
     struct relay_module_t relay = relay_module_create(PIN_RELAY);
+    
 #endif
 
     // Wait some time to be sure everything is ready
@@ -160,6 +162,12 @@ void main_task(void *pvParameters)
                 (recv_temp == MAGIC_FORCERELAY_ON ? true : false);
             normal_temp = false;
         }
+        
+         if (GETLOWER16(recv_temp) == MAGIC_HYSTERESIS)
+        {
+            relay.hysteresis = GETUPPER16(recv_temp) * 10;
+            normal_temp = false;
+        }
 #endif
 
 #if HAS_DISPLAY
@@ -179,7 +187,7 @@ void main_task(void *pvParameters)
             if (tcp_ready())
             {
                 client_connect(recv_temp);
-                DELAY(60000);
+                DELAY(10 * 60 * 1000);
             }
             else
             {

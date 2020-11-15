@@ -68,7 +68,7 @@
 #define TEMP_INITIAL (float) 22.0
 
 // Hysteresis value after boot
-#define HYST_INITIAL (float) 0.5
+#define HYST_INITIAL (float) 0.3
 
 // The value adc_read returns, when the
 // temperature knob set to max resistance
@@ -123,6 +123,12 @@
 // user's acceptance of the new
 // temperature setting in set mode
 #define MAGIC_ACC_TEMP 0xACCE
+
+// Magic number for the lower 16 bit
+// of the task notification value
+// to notify the main task about a
+// new hysteresis value from the user
+#define MAGIC_HYSTERESIS 0xABEF
 
 // Magic value indicating relay off event
 #define MAGIC_RELAY_ON 0xABC0

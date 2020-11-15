@@ -13,7 +13,8 @@
 static TaskHandle_t main_task_h = NULL;
 struct log_buffer_t templog;
 
-static float TEMP_TGT_V  = TEMP_INITIAL;
+static float    TEMP_TGT_V  = TEMP_INITIAL;
+static uint16_t HYSTERESIS  = (uint16_t) (HYST_INITIAL * 10);
 
 static float TEMP_ROOM_V = 655;
 static float TEMP_OUTS_V = 655;
@@ -108,6 +109,16 @@ static void notify_settemp()
             (eNotifyAction) eSetValueWithOverwrite);
 }
 
+static void notify_sethyst()
+{
+    uint32_t notify_val = 0;
+    notify_val   = HYSTERESIS;
+    notify_val <<= 16;
+    notify_val  += MAGIC_HYSTERESIS;
+    xTaskNotify(main_task_h, notify_val,
+            (eNotifyAction) eSetValueWithOverwrite);
+}
+
 static void notify_forceon()
 {
     uint32_t notify_val =
@@ -178,7 +189,11 @@ int32_t ssi_handler(int32_t iIndex, char *pcInsert, int32_t iInsertLen)
         case SERVER_UPTIME:
             snprintf(pcInsert, iInsertLen, "%u", get_uptime());
             break;
-
+        
+        case SET_HYST:
+            snprintf(pcInsert, iInsertLen, "%u", HYSTERESIS);
+            break;
+            
         default:
             snprintf(pcInsert, iInsertLen, "N/A");
             break;
@@ -202,6 +217,20 @@ const char *settemp_cgi_handler(int iIndex, int iNumParams, char *pcParam[], cha
             TEMP_TGT_V = atof(pcValue[i]);
             notify_settemp();
             write_log(LOG_SETTEMP);
+        }
+    }
+    return "/index.ssi";
+}
+
+// Set new hysteresis
+const char *sethyst_cgi_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
+{
+    for (int i = 0; i < iNumParams; i++)
+    {
+        if (strcmp(pcParam[i], "val") == 0)
+        {
+            HYSTERESIS = atof(pcValue[i]);
+            notify_sethyst();
         }
     }
     return "/index.ssi";
@@ -275,6 +304,7 @@ static void httpd_task(void *pvParameters)
     tCGI pCGIs[] =
     {
         { "/settemp",  (tCGIHandler) settemp_cgi_handler  },
+        { "/sethyst",  (tCGIHandler) sethyst_cgi_handler  },
         { "/setrelay", (tCGIHandler) setrelay_cgi_handler },
         { "/log",      (tCGIHandler) logpage_cgi_handler  },
         { "/settime",  (tCGIHandler) settime_cgi_handler  },
