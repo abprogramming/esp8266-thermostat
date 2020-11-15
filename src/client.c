@@ -15,6 +15,17 @@ static float roundf(float v)
     return (float) f / 10;
 }
 
+void blinkTask(void *pvParameters)
+{
+    gpio_enable(PIN_LED, GPIO_OUTPUT);
+    while(1) {
+        gpio_write(PIN_LED, 1);
+        DELAY(5000);
+        gpio_write(PIN_LED, 0);
+        DELAY(500);
+    }
+}
+
 static err_t cbConnect(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     uint32_t temp = (uint32_t) arg;
@@ -40,6 +51,7 @@ static err_t cbConnect(void *arg, struct tcp_pcb *tpcb, err_t err)
     dprintf("TCP sent: %s\n", payload);
 
     tcp_close(pcb);
+    
     return 0;
 }
 
@@ -53,11 +65,14 @@ void client_init(void)
     };
     sdk_wifi_set_opmode(STATION_MODE);
     sdk_wifi_station_set_config(&config);
-    sdk_wifi_station_connect();
+    
+    xTaskCreate(blinkTask, "blinkTask", 256, NULL, 2, NULL);
 }
       
 void client_connect(uint32_t temp)
 {
+    sdk_wifi_station_connect();
+    
     // Wait some time to be sure, that
     // the we are connected to the server AP
     DELAY(5000);
@@ -81,6 +96,9 @@ void client_connect(uint32_t temp)
         is_tcp_ready = false;
         return;
     }
+    
+    DELAY(5000);
+    sdk_wifi_station_disconnect();
 }
 
 bool tcp_ready(void)
