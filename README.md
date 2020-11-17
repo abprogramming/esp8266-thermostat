@@ -1,3 +1,5 @@
+![](https://github.com/abprogramming/esp8266-thermostat/blob/master/doc/screenshot.png)
+
 # What's this?
 An open IoT thermostat firmware for ESP8266 and [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), a nice FreeRTOS implementation for this microcontoller.
 This my first hardware/embeddded software project using the ESP8266, so it's intended to expolit as many features of this MCU, so I decided to make it public as it may be useful for others too.
@@ -37,5 +39,9 @@ just cd into that folder and:
 
 # What is needed for the hardware?
 I'm using Wemos D1 and D1 Mini boards for developing, but I guess other ESP8266 boards will also do
-the job if they have enough GPIO pins available. Besides that you'll need:
-- Two Dallas DS18B20
+the job if they have enough GPIO pins available. So you'll need two of them if you also want a client.
+Besides that you'll need these, I grabbed them at eBay:
+- Two Dallas DS18B20 temperature module or component (the "standalone" component will also do, since the internal pullup resistor is good enough)
+- A relay module
+- A logic level shifter. ESP8266 uses 3.3V logic level, relay modules use 5V, but fortunately ESP8266 has a 5V out pin.
+The easiest and cheapest way is to build your own from a 2N7000 or similar MOSFET and two resistors.
