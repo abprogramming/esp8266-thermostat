@@ -2,7 +2,7 @@
 
 # What's this?
 An open IoT thermostat firmware for ESP8266 and [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/), a nice FreeRTOS implementation for this microcontoller.
-This my first hardware/embeddded software project using the ESP8266, so it's intended to expolit as many features of this MCU, so I decided to make it public as it may be useful for others too.
+This my first hardware/embeddded software project using the ESP8266, so it's intended to expolit many features of this MCU, so I decided to make it public as it may be useful for others too.
 
 # Features of version v1.0
 * Two Dallas temperature sensors for inside and outside temperatures.
@@ -11,7 +11,7 @@ which provides a convient, mobile optimized website for controlling the thermost
 and check the system's status. It also features a log, which stores the temperature
 in 10-minute intervals and all the events (new temperature set, relay turns on/off).
 * The project originally featured four, 7-segment displays for display and a
-a tactile button and a potentiometer for user input, before I've finished the
+tactile button and a potentiometer for user input, before I've finished the
 webserver module. The device I currently use in my home lacks this display
 and the relevant parts are not compiled into the firmware.
 * Each hardware module is controlled by concurrent RTOS tasks. The main task
