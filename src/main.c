@@ -82,28 +82,6 @@ void user_init(void)
 
 }
 
-// Restart device
-static void restart_device(void)
-{
-    fflush(stdout);
-    uart_flush_txfifo(0);
-    uart_flush_txfifo(1);
-    DELAY(10);
-    sdk_system_restart();
-}
-
-// If any of these critical calls above fails, we should
-// not continue and try to restart the MCU ASAP
-void check_task_creation_result(BaseType_t r, char *name)
-{
-    if (r != pdPASS)
-    {
-        dprintf("FATAL ERROR: failed to create %s task, "
-                "restarting system...\n", name);
-        restart_device();
-    }
-}
-
 void main_task(void *pvParameters)
 {
     // Variables storing actual and target temperature
@@ -243,4 +221,24 @@ void main_task(void *pvParameters)
 }
 
 
+// Restart device
+void restart_device(void)
+{
+    fflush(stdout);
+    uart_flush_txfifo(0);
+    uart_flush_txfifo(1);
+    DELAY(10);
+    sdk_system_restart();
+}
 
+// If any of these critical calls above fails, we should
+// not continue and try to restart the MCU ASAP
+void check_task_creation_result(BaseType_t r, char *name)
+{
+    if (r != pdPASS)
+    {
+        dprintf("FATAL ERROR: failed to create %s task, "
+                "restarting system...\n", name);
+        restart_device();
+    }
+}

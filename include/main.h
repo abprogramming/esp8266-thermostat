@@ -3,5 +3,6 @@
 
 void main_task(void *pvParameters);
 void check_task_creation_result(BaseType_t r, char *name);
+void restart_device(void);
 
 #endif
