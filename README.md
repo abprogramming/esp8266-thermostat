@@ -29,11 +29,11 @@ temperature reading as a HTTP request.
 To compile it as a client, just define **IS_CLIENT 1**
 
 # How to compile?
-I recomment to download the lastest version, I only push code which is well tested
+I recommend to download the lastest version, I only push code which is well tested
 (ran for at least for a week in my home without any problems).
 For the ease of use, I simply created and maintained this project in the *examples* folder
 of [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/). So to download and build it
-just cd into that folder and:
+just *cd* into that folder and:
 
 ```
 git clone --recursive https://github.com/abprogramming/esp8266-thermostat.git
