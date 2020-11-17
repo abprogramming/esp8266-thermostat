@@ -29,13 +29,15 @@ temperature reading as a HTTP request.
 To compile it as a client, just define **IS_CLIENT 1**
 
 # How to compile?
+I recomment to download the lastest version, I only push code which is well tested
+(ran for at least for a week in my home without any problems).
 For the ease of use, I simply created and maintained this project in the *examples* folder
 of [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/). So to download and build it
 just cd into that folder and:
 
-**git clone --recursive https://github.com/abprogramming/esp8266-thermostat.git**
-**cd esp8266-thermostat**
-**make html && make flash -j8**
+**git clone --recursive https://github.com/abprogramming/esp8266-thermostat.git
+cd esp8266-thermostat
+make html && make flash -j8**
 
 # What is needed for the hardware?
 I'm using Wemos D1 and D1 Mini boards for developing, but I guess other ESP8266 boards will also do
