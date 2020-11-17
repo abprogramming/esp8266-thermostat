@@ -35,9 +35,11 @@ For the ease of use, I simply created and maintained this project in the *exampl
 of [esp-open-rtos](https://github.com/SuperHouse/esp-open-rtos/). So to download and build it
 just cd into that folder and:
 
-**git clone --recursive https://github.com/abprogramming/esp8266-thermostat.git
+```
+git clone --recursive https://github.com/abprogramming/esp8266-thermostat.git
 cd esp8266-thermostat
-make html && make flash -j8**
+make html && make flash -j8
+```
 
 # What is needed for the hardware?
 I'm using Wemos D1 and D1 Mini boards for developing, but I guess other ESP8266 boards will also do
